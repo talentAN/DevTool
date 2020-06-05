@@ -1,9 +1,11 @@
 import React from "react";
-import { SenseEditor } from "./SenseEditor";
-
+import DevTools from "./components/DevTool";
 function App() {
-  // const editor = new SenseEditor();
-  return <div className="App"></div>;
+  return (
+    <div className="App" id="javascript-editor">
+      <DevTools />
+    </div>
+  );
 }
 
 export default App;

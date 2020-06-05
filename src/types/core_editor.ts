@@ -17,17 +17,17 @@
  * under the License.
  */
 
-import { TokensProvider } from './tokens_provider';
-import { Token } from './token';
+import { TokensProvider } from "./tokens_provider";
+import { Token } from "./token";
 
 type MarkerRef = any;
 
 export type EditorEvent =
-  | 'tokenizerUpdate'
-  | 'changeCursor'
-  | 'changeScrollTop'
-  | 'change'
-  | 'changeSelection';
+  | "tokenizerUpdate"
+  | "changeCursor"
+  | "changeScrollTop"
+  | "change"
+  | "changeSelection";
 
 export type AutoCompleterFunction = (
   pos: Position,
@@ -261,7 +261,11 @@ export interface CoreEditor {
   /**
    * Register a keyboard shortcut and provide a function to be called.
    */
-  registerKeyboardShortcut(opts: { keys: any; fn: () => void; name: string }): void;
+  registerKeyboardShortcut(opts: {
+    keys: any;
+    fn: () => void;
+    name: string;
+  }): void;
 
   /**
    * Register a completions function that will be called when the editor

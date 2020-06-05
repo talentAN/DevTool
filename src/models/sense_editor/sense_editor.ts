@@ -1,32 +1,11 @@
-/*
- * Licensed to Elasticsearch B.V. under one or more contributor
- * license agreements. See the NOTICE file distributed with
- * this work for additional information regarding copyright
- * ownership. Elasticsearch B.V. licenses this file to you under
- * the Apache License, Version 2.0 (the "License"); you may
- * not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing,
- * software distributed under the License is distributed on an
- * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- * KIND, either express or implied.  See the License for the
- * specific language governing permissions and limitations
- * under the License.
- */
-
 //zilliz
 import _ from "lodash";
-import RowParser from "./lib/RowParser";
-import { collapseLiteralStrings } from "./lib/json_xjson_translation_tools";
-import * as utils from "./lib/utils";
+import RowParser from "../../lib/RowParser";
+import { collapseLiteralStrings } from "../../lib/json_xjson_translation_tools";
+import * as utils from "../../lib/utils";
 
-import { CoreEditor, Position, Range } from "./types";
-import { createTokenIterator } from "./lib/factories";
-
-import Autocomplete from "./lib/autocomplete/autocomplete";
+import { CoreEditor, Position, Range } from "../../types";
+import { createTokenIterator } from "../../lib/factories";
 
 function constructESUrl(baseUri: string, path: string) {
   baseUri = baseUri.replace(/\/+$/, "");
@@ -37,16 +16,10 @@ export class SenseEditor {
   currentReqRange: (Range & { markerRef: any }) | null;
   parser: any;
 
-  private readonly autocomplete: any;
-
+  // register CoreEditor, register event listeners
   constructor(private readonly coreEditor: CoreEditor) {
     this.currentReqRange = null;
     this.parser = new RowParser(this.coreEditor);
-    this.autocomplete = new (Autocomplete as any)({
-      coreEditor,
-      parser: this.parser,
-    });
-    this.coreEditor.registerAutocompleter(this.autocomplete.getCompletions);
     this.coreEditor.on(
       "tokenizerUpdate",
       this.highlightCurrentRequestsAndUpdateActionBar.bind(this)
@@ -57,7 +30,7 @@ export class SenseEditor {
     );
     this.coreEditor.on("changeScrollTop", this.updateActionsBar.bind(this));
   }
-
+  // helper for getRequestRange, return {lineNumber: curRow,column: 1,}
   prevRequestStart = (rowOrPos?: number | Position): Position => {
     let curRow: number;
 
@@ -80,7 +53,7 @@ export class SenseEditor {
       column: 1,
     };
   };
-
+  // helper for getRequestRange, return {lineNumber: curRow,column: 0}
   nextRequestStart = (rowOrPos?: number | Position) => {
     let curRow: number;
     if (rowOrPos == null) {
@@ -141,8 +114,9 @@ export class SenseEditor {
       this.coreEditor.insert(this.coreEditor.getCurrentPosition(), text);
     }
   };
-
+  // get request range
   getRequestRange = async (lineNumber?: number): Promise<Range | null> => {
+    // why async and what for
     await this.coreEditor.waitForLatestTokens();
 
     if (this.parser.isInBetweenRequestsRow(lineNumber)) {
@@ -217,7 +191,7 @@ export class SenseEditor {
       },
     };
   };
-
+  // return request like {method, data, url, range} || null
   getRequestInRange = async (range?: Range) => {
     await this.coreEditor.waitForLatestTokens();
     if (!range) {
