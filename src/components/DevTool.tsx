@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { create, SenseEditor } from "../models/sense_editor";
 import { useUIAceKeyboardMode } from "../plugins/use_ui_ace_keyboard_mode";
-
+import './DevTool.scss'
 const inputId = "ConAppInputTextarea";
 const DEFAULT_INPUT_VALUE = `GET _search
 {
