@@ -1,25 +1,6 @@
-/*
- * Licensed to Elasticsearch B.V. under one or more contributor
- * license agreements. See the NOTICE file distributed with
- * this work for additional information regarding copyright
- * ownership. Elasticsearch B.V. licenses this file to you under
- * the Apache License, Version 2.0 (the "License"); you may
- * not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing,
- * software distributed under the License is distributed on an
- * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- * KIND, either express or implied.  See the License for the
- * specific language governing permissions and limitations
- * under the License.
- */
-
-import ace from 'brace';
-import { Editor as IAceEditor, IEditSession as IAceEditSession } from 'brace';
-import $ from 'jquery';
+import ace from "brace";
+import { Editor as IAceEditor, IEditSession as IAceEditSession } from "brace";
+import $ from "jquery";
 import {
   CoreEditor,
   Position,
@@ -28,18 +9,23 @@ import {
   TokensProvider,
   EditorEvent,
   AutoCompleterFunction,
-} from '../../types';
-import { AceTokensProvider } from '../../lib/ace_token_provider';
-import * as curl from '../sense_editor/curl';
-import smartResize from './smart_resize';
+} from "../../types";
+import { AceTokensProvider } from "../../lib/ace_token_provider";
+import * as curl from "../sense_editor/curl";
+import smartResize from "./smart_resize";
 
 // @ts-ignore
-import * as InputMode from './mode/input';
+import * as InputMode from "./mode/input";
 
-const _AceRange = ace.acequire('ace/range').Range;
+const _AceRange = ace.acequire("ace/range").Range;
 
 const rangeToAceRange = ({ start, end }: Range) =>
-  new _AceRange(start.lineNumber - 1, start.column - 1, end.lineNumber - 1, end.column - 1);
+  new _AceRange(
+    start.lineNumber - 1,
+    start.column - 1,
+    end.lineNumber - 1,
+    end.column - 1
+  );
 
 export class LegacyCoreEditor implements CoreEditor {
   private _aceOnPaste: any;
@@ -53,7 +39,7 @@ export class LegacyCoreEditor implements CoreEditor {
     const session = this.editor.getSession();
     // set defualt mode, but the param should be string
     session.setMode(new InputMode.Mode() as any);
-    (session as any).setFoldStyle('markbeginend');
+    (session as any).setFoldStyle("markbeginend");
     session.setTabSize(2);
     session.setUseWrapMode(true);
 
@@ -144,7 +130,7 @@ export class LegacyCoreEditor implements CoreEditor {
   }
 
   insert(valueOrPos: string | Position, value?: string): void {
-    if (typeof valueOrPos === 'string') {
+    if (typeof valueOrPos === "string") {
       this.editor.insert(valueOrPos);
       return;
     }
@@ -154,12 +140,15 @@ export class LegacyCoreEditor implements CoreEditor {
         column: valueOrPos.column - 1,
         row: valueOrPos.lineNumber - 1,
       },
-      value || ''
+      value || ""
     );
   }
   // wrapper
   moveCursorToPosition(pos: Position): void {
-    this.editor.moveCursorToPosition({ row: pos.lineNumber - 1, column: pos.column - 1 });
+    this.editor.moveCursorToPosition({
+      row: pos.lineNumber - 1,
+      column: pos.column - 1,
+    });
   }
 
   replace(range: Range, value: string): void {
@@ -176,7 +165,10 @@ export class LegacyCoreEditor implements CoreEditor {
     const pos = this.editor.getCursorPosition();
     this.editor.getSession().replace(rangeToAceRange(range), value);
 
-    const maxRow = Math.max(range.start.lineNumber - 1 + value.split('\n').length - 1, 1);
+    const maxRow = Math.max(
+      range.start.lineNumber - 1 + value.split("\n").length - 1,
+      1
+    );
     pos.row = Math.min(pos.row, maxRow);
     this.editor.moveCursorToPosition(pos);
     // ACE UPGRADE - check if needed - at the moment the above may trigger a selection.
@@ -206,7 +198,12 @@ export class LegacyCoreEditor implements CoreEditor {
   addMarker(range: Range) {
     return this.editor
       .getSession()
-      .addMarker(rangeToAceRange(range), 'ace_snippet-marker', 'fullLine', false);
+      .addMarker(
+        rangeToAceRange(range),
+        "ace_snippet-marker",
+        "fullLine",
+        false
+      );
   }
 
   removeMarker(ref: any) {
@@ -218,9 +215,9 @@ export class LegacyCoreEditor implements CoreEditor {
   }
   // 事件的统一封装
   on(event: EditorEvent, listener: () => void) {
-    if (event === 'changeCursor') {
+    if (event === "changeCursor") {
       this.editor.getSession().selection.on(event, listener);
-    } else if (event === 'changeSelection') {
+    } else if (event === "changeSelection") {
       this.editor.on(event, listener);
     } else {
       this.editor.getSession().on(event, listener);
@@ -228,14 +225,16 @@ export class LegacyCoreEditor implements CoreEditor {
   }
 
   off(event: EditorEvent, listener: () => void) {
-    if (event === 'changeSelection') {
+    if (event === "changeSelection") {
       this.editor.off(event, listener);
     }
   }
 
   isCompleterActive() {
     // Secrets of the arcane here.
-    return Boolean((this.editor as any).completer && (this.editor as any).completer.activated);
+    return Boolean(
+      (this.editor as any).completer && (this.editor as any).completer.activated
+    );
   }
 
   private forceRetokenize() {
@@ -262,21 +261,24 @@ export class LegacyCoreEditor implements CoreEditor {
     this._aceOnPaste.call(this.editor, text);
   }
 
-  private setActionsBar = (value?: any, topOrBottom: 'top' | 'bottom' = 'top') => {
+  private setActionsBar = (
+    value?: any,
+    topOrBottom: "top" | "bottom" = "top"
+  ) => {
     if (value === null) {
-      this.$actions.css('visibility', 'hidden');
+      this.$actions.css("visibility", "hidden");
     } else {
-      if (topOrBottom === 'top') {
+      if (topOrBottom === "top") {
         this.$actions.css({
-          bottom: 'auto',
+          bottom: "auto",
           top: value,
-          visibility: 'visible',
+          visibility: "visible",
         });
       } else {
         this.$actions.css({
-          top: 'auto',
+          top: "auto",
           bottom: value,
-          visibility: 'visible',
+          visibility: "visible",
         });
       }
     }
@@ -299,7 +301,11 @@ export class LegacyCoreEditor implements CoreEditor {
     this.editor.container.style.fontSize = styles.fontSize;
   }
 
-  registerKeyboardShortcut(opts: { keys: string; fn: () => void; name: string }): void {
+  registerKeyboardShortcut(opts: {
+    keys: string;
+    fn: () => void;
+    name: string;
+  }): void {
     this.editor.commands.addCommand({
       exec: opts.fn,
       name: opts.name,
@@ -323,20 +329,24 @@ export class LegacyCoreEditor implements CoreEditor {
       const isWrapping = firstLine.length > maxLineLength;
       const totalOffset = offsetFromPage - (window.pageYOffset || 0);
       const getScreenCoords = (line: number) =>
-        this.editor.renderer.textToScreenCoordinates(line - 1, startColumn).pageY - totalOffset;
+        this.editor.renderer.textToScreenCoordinates(line - 1, startColumn)
+          .pageY - totalOffset;
       const topOfReq = getScreenCoords(startLine);
 
       if (topOfReq >= 0) {
-        const { bottom: maxBottom } = this.editor.container.getBoundingClientRect();
+        const {
+          bottom: maxBottom,
+        } = this.editor.container.getBoundingClientRect();
         if (topOfReq > maxBottom - totalOffset) {
-          this.setActionsBar(0, 'bottom');
+          this.setActionsBar(0, "bottom");
           return;
         }
         let offset = 0;
         if (isWrapping) {
           // Try get the line height of the text area in pixels.
-          const textArea = $(this.editor.container.querySelector('textArea')!);
-          const hasRoomOnNextLine = this.getLineValue(startLine).length < maxLineLength;
+          const textArea = $(this.editor.container.querySelector("textArea")!);
+          const hasRoomOnNextLine =
+            this.getLineValue(startLine).length < maxLineLength;
           if (textArea && hasRoomOnNextLine) {
             // Line height + the number of wraps we have on a line.
             offset += this.getLineValue(startLine).length * textArea.height()!;
@@ -354,8 +364,10 @@ export class LegacyCoreEditor implements CoreEditor {
       }
 
       const bottomOfReq =
-        this.editor.renderer.textToScreenCoordinates(range.end.lineNumber, range.end.column).pageY -
-        offsetFromPage;
+        this.editor.renderer.textToScreenCoordinates(
+          range.end.lineNumber,
+          range.end.column
+        ).pageY - offsetFromPage;
 
       if (bottomOfReq >= 0) {
         this.setActionsBar(0);
@@ -369,22 +381,23 @@ export class LegacyCoreEditor implements CoreEditor {
 
     // disable standard context based autocompletion.
     // @ts-ignore
-    ace.define('ace/autocomplete/text_completer', ['require', 'exports', 'module'], function (
-      require: any,
-      exports: any
-    ) {
-      exports.getCompletions = function (
-        innerEditor: any,
-        session: any,
-        pos: any,
-        prefix: any,
-        callback: any
-      ) {
-        callback(null, []);
-      };
-    });
+    ace.define(
+      "ace/autocomplete/text_completer",
+      ["require", "exports", "module"],
+      function (require: any, exports: any) {
+        exports.getCompletions = function (
+          innerEditor: any,
+          session: any,
+          pos: any,
+          prefix: any,
+          callback: any
+        ) {
+          callback(null, []);
+        };
+      }
+    );
 
-    const langTools = ace.acequire('ace/ext/language_tools');
+    const langTools = ace.acequire("ace/ext/language_tools");
 
     langTools.setCompleters([
       {

@@ -101,6 +101,7 @@ export class SenseEditor {
     }
   }, 25);
 
+  // as name
   update = async (data: string, reTokenizeAll = false) => {
     return this.coreEditor.setValue(data, reTokenizeAll);
   };
@@ -116,7 +117,6 @@ export class SenseEditor {
   };
   // get request range
   getRequestRange = async (lineNumber?: number): Promise<Range | null> => {
-    // why async and what for
     await this.coreEditor.waitForLatestTokens();
 
     if (this.parser.isInBetweenRequestsRow(lineNumber)) {
@@ -135,7 +135,7 @@ export class SenseEditor {
       },
     };
   };
-
+  // split valid requestes start and end line;
   expandRangeToRequestEdges = async (
     range = this.coreEditor.getSelectionRange()
   ): Promise<Range | null> => {
@@ -191,7 +191,7 @@ export class SenseEditor {
       },
     };
   };
-  // return request like {method, data, url, range} || null
+  // helper for getRequest. Parse range to single standard single request like {method, data, url, range}
   getRequestInRange = async (range?: Range) => {
     await this.coreEditor.waitForLatestTokens();
     if (!range) {
@@ -265,7 +265,7 @@ export class SenseEditor {
 
     return request;
   };
-
+  // Parse range to standard requests like [{method, data, url, range},...]
   getRequestsInRange = async (
     range = this.coreEditor.getSelectionRange(),
     includeNonRequestBlocks = false
@@ -321,17 +321,16 @@ export class SenseEditor {
 
     return requests;
   };
-
+  // Parse range to standard request like {method, data, url, range}
   getRequest = async (row?: number) => {
     await this.coreEditor.waitForLatestTokens();
     if (this.parser.isInBetweenRequestsRow(row)) {
       return null;
     }
-
     const range = await this.getRequestRange(row);
     return this.getRequestInRange(range!);
   };
-
+  // move to the start line
   moveToPreviousRequestEdge = async () => {
     await this.coreEditor.waitForLatestTokens();
     const pos = this.coreEditor.getCurrentPosition();
@@ -347,7 +346,7 @@ export class SenseEditor {
       column: 1,
     });
   };
-
+  // move to the end line
   moveToNextRequestEdge = async (moveOnlyIfNotOnEdge: boolean) => {
     await this.coreEditor.waitForLatestTokens();
     const pos = this.coreEditor.getCurrentPosition();
@@ -367,7 +366,7 @@ export class SenseEditor {
       column: 1,
     });
   };
-
+  // what relation with nextRequestStart??
   nextRequestEnd = (pos: Position): Position => {
     pos = pos || this.coreEditor.getCurrentPosition();
     const maxLines = this.coreEditor.getLineCount();
@@ -396,7 +395,7 @@ export class SenseEditor {
       column,
     };
   };
-
+  // helper for getRequestInRange
   nextDataDocEnd = (pos: Position): Position => {
     pos = pos || this.coreEditor.getCurrentPosition();
     let curLineNumber = pos.lineNumber;
@@ -429,7 +428,7 @@ export class SenseEditor {
       column,
     };
   };
-
+  // update actionbar and clear and set marker
   highlightCurrentRequestsAndUpdateActionBar = _.debounce(async () => {
     await this.coreEditor.waitForLatestTokens();
     const expandedRange = await this.expandRangeToRequestEdges();
@@ -463,7 +462,7 @@ export class SenseEditor {
     }
     this.updateActionsBar();
   }, 25);
-
+  // get requests in curl string like [str,...]
   getRequestsAsCURL = async (
     elasticsearchBaseUrl: string,
     range?: Range
@@ -499,7 +498,7 @@ export class SenseEditor {
 
     return result.join("\n");
   };
-
+  // get the accurate postion of action bar and update
   updateActionsBar = () => this.coreEditor.legacyUpdateUI(this.currentReqRange);
 
   getCoreEditor() {
