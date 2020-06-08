@@ -1,3 +1,18 @@
+.App {
+  min-height:500px;
+  display: flex;
+  flex-direction: column;
+}
+
+//temp:
+
+#json-editor,
+#javascript-editor {
+  top: 0;
+  left: 0;
+  bottom: 0;
+}
+
 #ConAppEditor {
   height: 100%;
   flex: 1 1 1px;
