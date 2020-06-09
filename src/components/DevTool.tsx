@@ -29,7 +29,7 @@ const DevTools = (props: any) => {
   const getSession = async () => {
     if (editorInstanceRef.current) {
       const editor = editorInstanceRef.current;
-      console.info(editor.getCoreEditor().editor.getSession());
+      console.info(editor.getCoreEditor().editor.getSession().$tokenizer);
     }
   };
   const getRequest = async () => {
@@ -62,7 +62,6 @@ const DevTools = (props: any) => {
     }
     // set init value for test
     editor.update(CONSTS.DEFAULT_INPUT_VALUE);
-    editor.getCoreEditor().editor.getSession().setTabSize(11);
     setTextArea(textareaElement);
   }, []);
 

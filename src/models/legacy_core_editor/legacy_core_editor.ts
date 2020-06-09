@@ -37,10 +37,9 @@ export class LegacyCoreEditor implements CoreEditor {
     this.editor.setShowPrintMargin(false);
 
     const session = this.editor.getSession();
-    // set defualt mode, but the param should be string
     session.setMode(new InputMode.Mode() as any);
     (session as any).setFoldStyle("markbeginend");
-    session.setTabSize(2);
+    session.setTabSize(20);
     session.setUseWrapMode(true);
 
     this.resize = smartResize(this.editor);
@@ -52,7 +51,7 @@ export class LegacyCoreEditor implements CoreEditor {
     this.editor.setOptions({
       enableBasicAutocompletion: true,
     });
-
+    this.editor.container.style.fontSize = '1rem';
     this.editor.$blockScrolling = Infinity;
     this.hideActionsBar();
     this.editor.focus();

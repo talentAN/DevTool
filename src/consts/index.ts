@@ -1,18 +1,20 @@
 
-export const DEFAULT_INPUT_VALUE = `
-GET _search
+export const DEFAULT_INPUT_VALUE = 
+`GET _search
 {
   "query": {
     "match_all": {}
   }
 }
+
 POST _add
 {
   "a": {
-    "b": "b",
-    "c": "c"
+    "b": false,
+    "c": {}
   }
 }
+
 POST _add
 {
   "a": {
@@ -20,6 +22,7 @@ POST _add
     "f": "c"
   }
 }
+
 POST delete
 {
   "a": {
