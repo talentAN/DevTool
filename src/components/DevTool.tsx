@@ -1,3 +1,10 @@
+/**
+ * Main Target
+ * - interface for request and handleRes
+ * - highlight
+ * - auto complete
+ * - merge into Milvus
+ */
 import React, { useState, useEffect, useRef } from "react";
 import { create } from "../models/sense_editor";
 import { useUIAceKeyboardMode } from "../plugins/use_ui_ace_keyboard_mode";
@@ -5,11 +12,15 @@ import Button from "@material-ui/core/Button";
 import * as CONSTS from "../consts";
 import "./DevTool.scss";
 const inputId = "ConAppInputTextarea";
+
 const _parseReq = (request: any) => {
-  return JSON.parse(request.split("\n").join(""));
+  const { method, data, url } = request;
+  const params = JSON.parse(data[0].split("\n").join(""));
+  return { method, url, params };
 };
 
 const DevTools = (props: any) => {
+  const { requester, handleRes } = props;
   const editorRef = useRef<HTMLDivElement | null>(null);
   const editorInstanceRef: any = useRef(null);
   const [textArea, setTextArea] = useState<HTMLTextAreaElement | null>(null);
@@ -25,7 +36,7 @@ const DevTools = (props: any) => {
     if (editorInstanceRef.current) {
       const editor = editorInstanceRef.current;
       editor.getRequest().then((res: any) => {
-        console.info("yyy", res);
+        requester(res).then((res: any) => handleRes(res));
       });
     }
   };
@@ -33,7 +44,9 @@ const DevTools = (props: any) => {
     if (editorInstanceRef.current) {
       const editor = editorInstanceRef.current;
       editor.getRequestsInRange().then((res: any) => {
-        console.info("zzz", res);
+        Promise.all(
+          res.map((data: any) => requester(_parseReq(data)))
+        ).then((results: any) => handleRes(results));
       });
     }
   };
@@ -49,7 +62,7 @@ const DevTools = (props: any) => {
     }
     // set init value for test
     editor.update(CONSTS.DEFAULT_INPUT_VALUE);
-    editor.getCoreEditor().editor.getSession().setTabSize(11)
+    editor.getCoreEditor().editor.getSession().setTabSize(11);
     setTextArea(textareaElement);
   }, []);
 

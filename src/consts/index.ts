@@ -10,21 +10,21 @@ POST _add
 {
   "a": {
     "b": "b",
-    "c": "c",
+    "c": "c"
   }
 }
 POST _add
 {
   "a": {
     "e": "b",
-    "f": "c",
+    "f": "c"
   }
 }
 POST delete
 {
   "a": {
     "b": "b",
-    "c": "c",
+    "c": "c"
   }
 }
 `;
