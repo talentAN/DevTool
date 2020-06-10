@@ -23,7 +23,7 @@ POST _add
   }
 }
 
-POST delete
+PUT delete
 {
   "a": {
     "b": "b",

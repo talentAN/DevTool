@@ -1,86 +1,45 @@
-/**
- * Main Target
- * - interface for request and handleRes => done
- * - highlight => done
- * - auto complete
- * - merge into Milvus
- */
-import React, { useState, useEffect, useRef } from "react";
-import { create } from "../models/sense_editor";
-import { useUIAceKeyboardMode } from "../plugins/use_ui_ace_keyboard_mode";
-import Button from "@material-ui/core/Button";
+import React, { useState } from "react";
+import { makeStyles } from "@material-ui/styles";
+import Editor from "./Editor";
+import Blackboard from "./Blackboard";
 import * as CONSTS from "../consts";
-import "./DevTool.scss";
-const inputId = "ConAppInputTextarea";
 
-const _parseReq = (request: any) => {
-  const { method, data, url } = request;
-  const params = JSON.parse(data[0].split("\n").join(""));
-  return { method, url, params };
-};
-
-const DevTools = (props: any) => {
-  const { requester, handleRes } = props;
-  const editorRef = useRef<HTMLDivElement | null>(null);
-  const editorInstanceRef: any = useRef(null);
-  const [textArea, setTextArea] = useState<HTMLTextAreaElement | null>(null);
-  useUIAceKeyboardMode(textArea);
-
-  const getSession = async () => {
-    if (editorInstanceRef.current) {
-      const editor = editorInstanceRef.current;
-      console.info(editor.getCoreEditor().editor.getSession().$tokenizer);
-    }
+const DevTool = (props: any) => {
+  const classes = makeStyles({
+    root: {
+      flexGrow: 1,
+      display: "flex",
+      flexDirection: "column",
+      overflow: "hidden",
+    },
+    header: {
+      height: "100px",
+      border: "solid 1px #0000ff",
+    },
+    editorContainer: {
+      flexGrow: 1,
+      display: "flex",
+      justifyContent: "space-between",
+    },
+  })();
+  const [result, setResult]: any = useState("");
+  const requester = async (data: any) => data;
+  const handleRes = (res: any) => {
+    const str = JSON.stringify(res, null, 2);
+    setResult(str);
   };
-  const getRequest = async () => {
-    if (editorInstanceRef.current) {
-      const editor = editorInstanceRef.current;
-      editor.getRequest().then((res: any) => {
-        requester(res).then((res: any) => handleRes(res));
-      });
-    }
-  };
-  const getRequests = async () => {
-    if (editorInstanceRef.current) {
-      const editor = editorInstanceRef.current;
-      editor.getRequestsInRange().then((res: any) => {
-        Promise.all(
-          res.map((data: any) => requester(_parseReq(data)))
-        ).then((results: any) => handleRes(results));
-      });
-    }
-  };
-
-  useEffect(() => {
-    // create a senseEditor
-    editorInstanceRef.current = create(editorRef.current!);
-    const editor = editorInstanceRef.current;
-    const textareaElement = editorRef.current!.querySelector("textarea");
-
-    if (textareaElement) {
-      textareaElement.setAttribute("id", inputId);
-    }
-    // set init value for test
-    editor.update(CONSTS.DEFAULT_INPUT_VALUE);
-    setTextArea(textareaElement);
-  }, []);
 
   return (
-    <>
-      <div id="ConAppEditorActions">
-        <Button variant="contained" onClick={getSession}>
-          Get Session
-        </Button>
-        <Button variant="contained" onClick={getRequest}>
-          Get Request
-        </Button>
-        <Button variant="contained" onClick={getRequests}>
-          Get Requests
-        </Button>
+    <div className={classes.root}>
+      <div className={classes.header}>Header</div>
+      <div className={classes.editorContainer}>
+        <Editor
+          requester={requester}
+          handleRes={handleRes}
+        />
+        <Blackboard value={result} />
       </div>
-      <div ref={editorRef} id="ConAppEditor" />
-    </>
+    </div>
   );
 };
-
-export default DevTools;
+export default DevTool;
