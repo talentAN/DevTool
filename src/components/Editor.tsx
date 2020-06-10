@@ -3,7 +3,7 @@
  * - interface for request and handleRes => done
  * - highlight => done
  * - Get request fail
- * - auto complete
+ * - auto complete =>
  * - merge into Milvus
  */
 import React, { useState, useEffect, useRef } from "react";

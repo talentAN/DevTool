@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import { makeStyles } from "@material-ui/styles";
 import Editor from "./Editor";
 import Blackboard from "./Blackboard";
-import * as CONSTS from "../consts";
 
 const DevTool = (props: any) => {
   const classes = makeStyles({
