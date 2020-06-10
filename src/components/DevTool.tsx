@@ -1,6 +1,6 @@
 /**
  * Main Target
- * - interface for request and handleRes => done 
+ * - interface for request and handleRes => done
  * - highlight => done
  * - auto complete
  * - merge into Milvus
