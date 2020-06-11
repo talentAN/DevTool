@@ -15,10 +15,11 @@ import { create } from "../models/sense_editor";
 import { useUIAceKeyboardMode } from "../plugins/use_ui_ace_keyboard_mode";
 import * as CONSTS from "../consts";
 import "./DevTool.scss";
-const inputId = "ConAppInputTextarea";
 
+const inputId = "ConAppInputTextarea";
+const EditorID = `CoreEditor`;
 const useStyles = (params: any) => {
-  const { actionTop } = params;
+  const { actionTop = 0 } = params;
   return makeStyles({
     root: {
       position: "relative",
@@ -32,7 +33,7 @@ const useStyles = (params: any) => {
       top: `${actionTop}px`,
       left: 0,
       zIndex: 100,
-      display: "flex",
+      display: actionTop < 0 ? "none" : "flex",
       alignItems: "center",
       justifyContent: "flex-end",
     },
@@ -81,11 +82,16 @@ const Editor = (props: any) => {
     if (textareaElement) {
       textareaElement.setAttribute("id", inputId);
     }
+
     // set init value for test
     editor.update(CONSTS.DEFAULT_INPUT_VALUE);
     const coreEditor = editor.getCoreEditor();
+
+    // auto calculate marker postions when cursor change or scroll
+    const Div_Scroll = document.querySelector(".ace_scrollbar")!;
+
     let timeout: any;
-    coreEditor.on("changeCursor", () => {
+    const _setActionTop = () => {
       if (timeout) {
         clearTimeout(timeout);
       }
@@ -96,14 +102,19 @@ const Editor = (props: any) => {
           const div: any = document.querySelector(".ace_line_group")!;
           const height =
             Number.parseFloat(div && div.style && div.style.height) || 16;
-          const top = (startLine - 1) * height;
+          let top = (startLine - 1) * height - Div_Scroll.scrollTop;
           setActionTop(top);
         } else {
           setActionTop(999999);
         }
       }, 50);
+    };
+    coreEditor.on("changeCursor", () => {
+      _setActionTop();
     });
-
+    Div_Scroll.addEventListener("scroll", (e: any) => {
+      _setActionTop();
+    });
     setTextArea(textareaElement);
   }, []);
 
@@ -118,7 +129,7 @@ const Editor = (props: any) => {
             <ArrowRightIcon fontSize="small" />
           </IconButton>
         </div>
-        <div ref={editorRef} id="CoreEditor" />
+        <div ref={editorRef} id={EditorID} />
       </div>
     </>
   );
