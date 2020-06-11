@@ -3,9 +3,9 @@ import _ from "lodash";
 import RowParser from "../../lib/RowParser";
 import { collapseLiteralStrings } from "../../lib/json_xjson_translation_tools";
 import * as utils from "../../lib/utils";
-
 import { CoreEditor, Position, Range } from "../../types";
 import { createTokenIterator } from "../../lib/factories";
+import Autocomplete from "../../lib/autocomplete/autocomplete";
 
 function constructESUrl(baseUri: string, path: string) {
   baseUri = baseUri.replace(/\/+$/, "");
@@ -15,11 +15,19 @@ function constructESUrl(baseUri: string, path: string) {
 export class SenseEditor {
   currentReqRange: (Range & { markerRef: any }) | null;
   parser: any;
+  private readonly autocomplete: any;
 
   // register CoreEditor, register event listeners
   constructor(private readonly coreEditor: CoreEditor) {
     this.currentReqRange = null;
     this.parser = new RowParser(this.coreEditor);
+    // add autocomplete
+    this.autocomplete = new (Autocomplete as any)({
+      coreEditor,
+      parser: this.parser,
+    });
+    this.coreEditor.registerAutocompleter(this.autocomplete.getCompletions);
+
     this.coreEditor.on(
       "tokenizerUpdate",
       this.highlightCurrentRequestsAndUpdateActionBar.bind(this)
@@ -28,7 +36,6 @@ export class SenseEditor {
       "changeCursor",
       this.highlightCurrentRequestsAndUpdateActionBar.bind(this)
     );
-    this.coreEditor.on("changeScrollTop", this.updateActionsBar.bind(this));
   }
   // helper for getRequestRange, return {lineNumber: curRow,column: 1,}
   prevRequestStart = (rowOrPos?: number | Position): Position => {
@@ -442,11 +449,6 @@ export class SenseEditor {
         this.currentReqRange.start.lineNumber &&
       expandedRange.end.lineNumber === this.currentReqRange.end.lineNumber
     ) {
-      // same request, now see if we are on the first line and update the action bar
-      const cursorLineNumber = this.coreEditor.getCurrentPosition().lineNumber;
-      if (cursorLineNumber === this.currentReqRange.start.lineNumber) {
-        this.updateActionsBar();
-      }
       return; // nothing to do..
     }
 
@@ -460,7 +462,6 @@ export class SenseEditor {
         this.currentReqRange
       );
     }
-    this.updateActionsBar();
   }, 25);
   // get requests in curl string like [str,...]
   getRequestsAsCURL = async (
@@ -498,8 +499,6 @@ export class SenseEditor {
 
     return result.join("\n");
   };
-  // get the accurate postion of action bar and update
-  updateActionsBar = () => this.coreEditor.legacyUpdateUI(this.currentReqRange);
 
   getCoreEditor() {
     return this.coreEditor;

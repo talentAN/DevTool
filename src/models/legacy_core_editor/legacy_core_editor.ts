@@ -282,67 +282,6 @@ export class LegacyCoreEditor implements CoreEditor {
     });
   }
 
-  legacyUpdateUI(range: any) {
-    // console.info(range);
-    // if (!this.$actions) {
-    //   return;
-    // }
-    // if (range) {
-    //   // elements are positioned relative to the editor's container
-    //   // pageY is relative to page, so subtract the offset
-    //   // from pageY to get the new top value
-    //   const offsetFromPage = $(this.editor.container).offset()!.top;
-    //   const startLine = range.start.lineNumber;
-    //   const startColumn = range.start.column;
-    //   const firstLine = this.getLineValue(startLine);
-    //   const maxLineLength = this.getWrapLimit() - 5;
-    //   const isWrapping = firstLine.length > maxLineLength;
-    //   const totalOffset = offsetFromPage - (window.pageYOffset || 0);
-    //   const getScreenCoords = (line: number) =>
-    //     this.editor.renderer.textToScreenCoordinates(line - 1, startColumn)
-    //       .pageY - totalOffset;
-    //   const topOfReq = getScreenCoords(startLine);
-    //   if (topOfReq >= 0) {
-    //     const {
-    //       bottom: maxBottom,
-    //     } = this.editor.container.getBoundingClientRect();
-    //     if (topOfReq > maxBottom - totalOffset) {
-    //       this.setActionsBar(0, "bottom");
-    //       return;
-    //     }
-    //     let offset = 0;
-    //     if (isWrapping) {
-    //       // Try get the line height of the text area in pixels.
-    //       const textArea = $(this.editor.container.querySelector("textArea")!);
-    //       const hasRoomOnNextLine =
-    //         this.getLineValue(startLine).length < maxLineLength;
-    //       if (textArea && hasRoomOnNextLine) {
-    //         // Line height + the number of wraps we have on a line.
-    //         offset += this.getLineValue(startLine).length * textArea.height()!;
-    //       } else {
-    //         if (startLine > 1) {
-    //           this.setActionsBar(getScreenCoords(startLine - 1));
-    //           return;
-    //         }
-    //         this.setActionsBar(getScreenCoords(startLine + 1));
-    //         return;
-    //       }
-    //     }
-    //     this.setActionsBar(topOfReq + offset);
-    //     return;
-    //   }
-    //   const bottomOfReq =
-    //     this.editor.renderer.textToScreenCoordinates(
-    //       range.end.lineNumber,
-    //       range.end.column
-    //     ).pageY - offsetFromPage;
-    //   if (bottomOfReq >= 0) {
-    //     this.setActionsBar(0);
-    //     return;
-    //   }
-    // }
-  }
-
   registerAutocompleter(autocompleter: AutoCompleterFunction): void {
     // Hook into Ace
 

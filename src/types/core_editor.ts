@@ -242,13 +242,6 @@ export interface CoreEditor {
   getContainer(): HTMLDivElement;
 
   /**
-   * Because the core editor should not know about requests, but can know about ranges we still
-   * have this backdoor to update UI in response to request range changes, for example, as the user
-   * moves the cursor around
-   */
-  legacyUpdateUI(opts: any): void;
-
-  /**
    * A method to for the editor to resize, useful when, for instance, window size changes.
    */
   resize(): void;

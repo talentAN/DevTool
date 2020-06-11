@@ -58,6 +58,7 @@ function isUrlParamsToken(token: any) {
  * separated.
  *
  */
+;
 export function getCurrentMethodAndTokenPaths(
   editor: CoreEditor,
   pos: Position,
@@ -334,7 +335,8 @@ export default function ({
         return false;
     }
   }
-
+  // helper for complete context.autoCompleteSet;
+  // list->context.autoCompleteSet meta -> endpoint template? I don't know
   function addMetaToTermsList(list: any, meta: any, template?: string) {
     return _.map(list, function (t: any) {
       if (typeof t !== "object") {
@@ -848,6 +850,19 @@ export default function ({
       context.autoCompleteSet,
       "endpoint"
     );
+    // here the context should be
+    // {
+    //   method,
+    //   token,
+    //   otherTokenValues,
+    //   urlTokenPath,
+    //   autoCompleteSet:{
+    //     name,
+    //     meta,
+    //     template,
+    //     ...
+    //   }
+    // }
   }
 
   function addUrlParamsAutoCompleteSetToContext(context: any, pos: Position) {
@@ -1013,6 +1028,15 @@ export default function ({
     callback: (...args: any[]) => void
   ) {
     try {
+      // context is
+      //  {
+      //   autoCompleteSet: null, // instructions for what can be here
+      //   endpoint: null,
+      //   urlPath: null,
+      //   method: null,
+      //   activeScheme: null,
+      //   editor: ctxEditor,
+      // }
       const context = getAutoCompleteContext(editor, position);
       if (!context) {
         callback(null, []);
