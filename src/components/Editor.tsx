@@ -4,7 +4,7 @@
  * - highlight => done
  * - Get request fail
  * - auto complete =>
- * - merge into Milvus
+ * - merge into Milvus => 
  */
 import React, { useState, useEffect, useRef } from "react";
 import { makeStyles } from "@material-ui/styles";
@@ -32,8 +32,9 @@ const useStyles = (params: any) => {
       top: `${actionTop}px`,
       left: 0,
       zIndex: 100,
-      transparent: 0.1,
-      textAlign: "right",
+      display:'flex',
+      alignItems:"center",
+      justifyContent:"flex-end"
     },
   })();
 };
