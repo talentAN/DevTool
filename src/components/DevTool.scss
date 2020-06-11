@@ -244,12 +244,19 @@ body {
     font: 1rem / normal "Monaco", "Menlo", "Ubuntu Mono", "Consolas",
       "source-code-pro", monospace;
   }
-  .ace_gutter-cell,
-  .ace_line_group,
-  .ace_line,
-  .ace_line span {
-    height: 16px !important;
-    font: 12px / normal "Monaco", "Menlo", "Ubuntu Mono", "Consolas",
-      "source-code-pro", monospace;
+  .ace_bracket {
+    display: none;
   }
+  // .ace_gutter-cell,
+  // .ace_line_group,
+  // .ace_line,
+  // .ace_line span,
+  // .ace-tm .ace_cursor,
+  // .ace_text-input,
+  // .ace_gutter-active-line,
+  // .ace_active-line {
+  //   height: 16px !important;
+  //   font: 12px / normal "Monaco", "Menlo", "Ubuntu Mono", "Consolas",
+  //     "source-code-pro", monospace;
+  // }
 }
