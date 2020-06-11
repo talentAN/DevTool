@@ -92,7 +92,9 @@ const DevTools = (props: any) => {
         const currentReqRange = editor.currentReqRange;
         if (currentReqRange) {
           const startLine = currentReqRange.start.lineNumber;
-          const top = (startLine - 1) * 16;
+          const div:any = document.querySelector('.ace_line_group')!;
+          const height = Number.parseFloat(div && div.style && div.style.height) || 16;
+          const top = (startLine - 1) * height;
           setActionTop(top);
         } else {
           setActionTop(999999);
