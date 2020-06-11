@@ -4,7 +4,7 @@
  * - highlight => done
  * - Get request fail
  * - auto complete =>
- * - merge into Milvus => 
+ * - merge into Milvus =>
  */
 import React, { useState, useEffect, useRef } from "react";
 import { makeStyles } from "@material-ui/styles";
@@ -32,9 +32,9 @@ const useStyles = (params: any) => {
       top: `${actionTop}px`,
       left: 0,
       zIndex: 100,
-      display:'flex',
-      alignItems:"center",
-      justifyContent:"flex-end"
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "flex-end",
     },
   })();
 };
@@ -93,8 +93,9 @@ const DevTools = (props: any) => {
         const currentReqRange = editor.currentReqRange;
         if (currentReqRange) {
           const startLine = currentReqRange.start.lineNumber;
-          const div:any = document.querySelector('.ace_line_group')!;
-          const height = Number.parseFloat(div && div.style && div.style.height) || 16;
+          const div: any = document.querySelector(".ace_line_group")!;
+          const height =
+            Number.parseFloat(div && div.style && div.style.height) || 16;
           const top = (startLine - 1) * height;
           setActionTop(top);
         } else {
@@ -108,7 +109,7 @@ const DevTools = (props: any) => {
 
   return (
     <>
-      <div id="ConAppEditorActions" className={classes.root}>
+      <div className={classes.root}>
         <div className={classes.actions}>
           <IconButton size="small" onClick={getSession}>
             <DeleteIcon fontSize="small" />
@@ -117,7 +118,7 @@ const DevTools = (props: any) => {
             <ArrowRightIcon fontSize="small" />
           </IconButton>
         </div>
-        <div ref={editorRef} id="ConAppEditor" />
+        <div ref={editorRef} id="CoreEditor" />
       </div>
     </>
   );

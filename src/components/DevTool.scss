@@ -20,14 +20,11 @@
   bottom: 0;
 }
 
-#ConAppEditor {
+#CoreEditor {
   height: 100%;
   flex: 1 1 1px;
 }
 
-#ConAppEditorActions {
-  margin-bottom: 20px;
-}
 
 // SASSTODO: Replace with an EUI editor
 // Intentionally not using the EuiCodeBlock colors here because they actually change

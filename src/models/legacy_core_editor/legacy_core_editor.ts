@@ -1,6 +1,5 @@
 import ace from "brace";
 import { Editor as IAceEditor, IEditSession as IAceEditSession } from "brace";
-import $ from "jquery";
 import {
   CoreEditor,
   Position,
@@ -29,11 +28,9 @@ const rangeToAceRange = ({ start, end }: Range) =>
 
 export class LegacyCoreEditor implements CoreEditor {
   private _aceOnPaste: any;
-  $actions: any;
   resize: () => void;
 
-  constructor(private readonly editor: IAceEditor, actions: HTMLElement) {
-    this.$actions = $(actions);
+  constructor(private readonly editor: IAceEditor) {
     this.editor.setShowPrintMargin(false);
 
     const session = this.editor.getSession();
@@ -52,9 +49,8 @@ export class LegacyCoreEditor implements CoreEditor {
       enableBasicAutocompletion: true,
     });
     this.editor.container.style.fontSize = "1rem";
-    this.editor.container.style.lineHeight = '20px'
+    this.editor.container.style.lineHeight = "20px";
     this.editor.$blockScrolling = Infinity;
-    this.hideActionsBar();
     this.editor.focus();
   }
 
@@ -261,33 +257,6 @@ export class LegacyCoreEditor implements CoreEditor {
     this._aceOnPaste.call(this.editor, text);
   }
 
-  private setActionsBar = (
-    value?: any,
-    topOrBottom: "top" | "bottom" = "top"
-  ) => {
-    if (value === null) {
-      this.$actions.css("visibility", "hidden");
-    } else {
-      if (topOrBottom === "top") {
-        this.$actions.css({
-          bottom: "auto",
-          top: value,
-          visibility: "visible",
-        });
-      } else {
-        this.$actions.css({
-          top: "auto",
-          bottom: value,
-          visibility: "visible",
-        });
-      }
-    }
-  };
-
-  private hideActionsBar = () => {
-    this.setActionsBar();
-  };
-
   execCommand(cmd: string) {
     this.editor.execCommand(cmd);
   }
@@ -333,7 +302,6 @@ export class LegacyCoreEditor implements CoreEditor {
     //     this.editor.renderer.textToScreenCoordinates(line - 1, startColumn)
     //       .pageY - totalOffset;
     //   const topOfReq = getScreenCoords(startLine);
-
     //   if (topOfReq >= 0) {
     //     const {
     //       bottom: maxBottom,
@@ -363,13 +331,11 @@ export class LegacyCoreEditor implements CoreEditor {
     //     this.setActionsBar(topOfReq + offset);
     //     return;
     //   }
-
     //   const bottomOfReq =
     //     this.editor.renderer.textToScreenCoordinates(
     //       range.end.lineNumber,
     //       range.end.column
     //     ).pageY - offsetFromPage;
-
     //   if (bottomOfReq >= 0) {
     //     this.setActionsBar(0);
     //     return;
