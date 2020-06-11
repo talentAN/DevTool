@@ -52,6 +52,7 @@ export class LegacyCoreEditor implements CoreEditor {
       enableBasicAutocompletion: true,
     });
     this.editor.container.style.fontSize = "1rem";
+    this.editor.container.style.lineHeight = '20px'
     this.editor.$blockScrolling = Infinity;
     this.hideActionsBar();
     this.editor.focus();

@@ -22,6 +22,7 @@ export class PureBlackboard {
       enableBasicAutocompletion: true,
     });
     this.editor.container.style.fontSize = "1rem";
+    this.editor.container.style.lineHeight = '20px'
     this.editor.$blockScrolling = Infinity;
 
   }
