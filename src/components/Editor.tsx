@@ -31,7 +31,7 @@ const useStyles = (params: any) => {
       width: "100%",
       height: "20px",
       top: `${actionTop}px`,
-      left: 0,
+      right: `20px`,
       zIndex: 100,
       display: actionTop < 0 ? "none" : "flex",
       alignItems: "center",
