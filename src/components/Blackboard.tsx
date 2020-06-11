@@ -1,4 +1,5 @@
 import React, { useEffect, useRef } from "react";
+import clsx from "clsx";
 import { makeStyles } from "@material-ui/styles";
 import { PureBlackboard } from "../models/legacy_core_editor/blackboard";
 import * as ace from "brace";
@@ -12,6 +13,10 @@ const useStyles = (params: any) => {
       position: "relative",
       width: "50%",
       top: `0 !important`,
+      display: "flex",
+      "& #blackboard": {
+        flexGrow: 1,
+      },
     },
   })();
 };
@@ -30,12 +35,15 @@ const Blackboard = (props: any) => {
       editor.editor.getSession().setMode("ace/mode/json");
       editor.editor.setTheme("ace/theme/solarized_light");
       editor.editor.setShowPrintMargin(false);
-      editor.editor.container.style.fontSize = "1rem";
     }
-    blackboardRef.current.editor.setValue(value,1);
+    blackboardRef.current.editor.setValue(value, 1);
   }, [value]);
 
-  return <div id="blackboard" className={classes.root} />;
+  return (
+    <div className={clsx(classes.root)}>
+      <div id="blackboard" />
+    </div>
+  );
 };
 
 export default Blackboard;

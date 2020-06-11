@@ -15,15 +15,14 @@ export class PureBlackboard {
     (session as any).setFoldStyle("markbeginend");
     session.setTabSize(20);
     session.setUseWrapMode(true);
+
     this.resize = smartResize(this.editor);
 
     // Intercept ace on paste handler.
     this.editor.setOptions({
       enableBasicAutocompletion: true,
     });
-    this.editor.container.style.fontSize = "1rem";
-    this.editor.container.style.lineHeight = '20px'
     this.editor.$blockScrolling = Infinity;
-
   }
 }
+

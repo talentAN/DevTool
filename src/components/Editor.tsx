@@ -44,7 +44,7 @@ const _parseReq = (request: any) => {
   return { method, url, params };
 };
 
-const DevTools = (props: any) => {
+const Editor = (props: any) => {
   const { requester, handleRes } = props;
   const editorRef = useRef<HTMLDivElement | null>(null);
   const editorInstanceRef: any = useRef(null);
@@ -124,4 +124,4 @@ const DevTools = (props: any) => {
   );
 };
 
-export default DevTools;
+export default Editor;
