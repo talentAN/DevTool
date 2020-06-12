@@ -58,7 +58,6 @@ function isUrlParamsToken(token: any) {
  * separated.
  *
  */
-;
 export function getCurrentMethodAndTokenPaths(
   editor: CoreEditor,
   pos: Position,
@@ -69,8 +68,10 @@ export function getCurrentMethodAndTokenPaths(
     editor,
     position: pos,
   });
+  // tokenIter => { tokenLineCache:{ { type: method, value, postion}, { type:whiteSpace, ....}, { type:url.part, ...}}, ... }
   const startPos = pos;
   let bodyTokenPath: any = [];
+  // what is ret? =>
   const ret: any = {};
 
   const STATES = {
@@ -80,10 +81,13 @@ export function getCurrentMethodAndTokenPaths(
   };
   let state = STATES.start;
 
-  // initialization problems -
+  // initialization problems
+  // t is => {postion, type:'url.part', value:"lalall"}
   let t = tokenIter.getCurrentToken();
+  // handle if t not exists or the postion is first line
   if (t) {
     if (startPos.column === 1) {
+      console.log("xxx, is first line");
       // if we are at the beginning of the line, the current token is the one after cursor, not before which
       // deviates from the standard.
       t = tokenIter.stepBackward();
@@ -96,7 +100,6 @@ export function getCurrentMethodAndTokenPaths(
       state = STATES.start;
     }
   }
-
   let walkedSomeBody = false;
 
   // climb one scope at a time and get the scope key
@@ -108,7 +111,6 @@ export function getCurrentMethodAndTokenPaths(
     if (t.type !== "whitespace") {
       walkedSomeBody = true;
     } // marks we saw something
-
     switch (t.type) {
       case "variable":
         if (state === STATES.looking_for_key) {
@@ -194,7 +196,6 @@ export function getCurrentMethodAndTokenPaths(
         break; // skip white space
     }
   }
-
   if (
     walkedSomeBody &&
     (!bodyTokenPath || bodyTokenPath.length === 0) &&
@@ -213,7 +214,9 @@ export function getCurrentMethodAndTokenPaths(
         t.type === "url.value")
     ) {
       // we are forcing the end of the url for the purposes of determining an endpoint
+      // console.info('lalla', forceEndOfUrl, t.type==='url.part')
       if (forceEndOfUrl && t.type === "url.part") {
+        // console.info('-> 333')
         ret.urlTokenPath.push(t.value);
         ret.urlTokenPath.push(URL_PATH_END_MARKER);
       }
@@ -226,6 +229,7 @@ export function getCurrentMethodAndTokenPaths(
     }
     bodyTokenPath = null; // no not on a body line.
   }
+  // console.info("xxx", ret);
 
   ret.bodyTokenPath = bodyTokenPath;
 
@@ -487,8 +491,9 @@ export default function ({
     //    context.updatedForToken = { value: "", start: pos.column }; // empty line
     //
     //  context.updatedForToken.row = pos.row; // extend
-
+    // console.info("xxx", context);
     context.autoCompleteType = getAutoCompleteType(pos);
+    console.info(`==> add ${context.autoCompleteType} auto complete`);
     switch (context.autoCompleteType) {
       case "path":
         addPathAutoCompleteSetToContext(context, pos);
@@ -505,7 +510,8 @@ export default function ({
       default:
         return null;
     }
-
+    // console.info("zzz", context.autoCompleteSet);
+    // here should have no empty context.autoCompleteSet
     if (!context.autoCompleteSet) {
       return null; // nothing to do..
     }
@@ -682,7 +688,7 @@ export default function ({
       lineNumber: context.rangeToReplace.start.lineNumber,
       column: context.rangeToReplace.start.column,
     };
-
+    console.info(`=> get ${context.autoCompleteType} auto complete`);
     switch (context.autoCompleteType) {
       case "path":
         addPathPrefixSuffixToContext(context);
@@ -836,33 +842,22 @@ export default function ({
       })
     );
   }
-
+  // main function to get path autocomplete
   function addPathAutoCompleteSetToContext(context: any, pos: Position) {
     const ret = getCurrentMethodAndTokenPaths(editor, pos, parser);
     context.method = ret.method;
     context.token = ret.token;
     context.otherTokenValues = ret.otherTokenValues;
     context.urlTokenPath = ret.urlTokenPath;
+    // what components for
     const components = getTopLevelUrlCompleteComponents(context.method);
+    // what this method for
     populateContext(ret.urlTokenPath, context, editor, true, components);
-
+    // before doing this, the context.autoCompleteSet shoud be a valid array.
     context.autoCompleteSet = addMetaToTermsList(
       context.autoCompleteSet,
       "endpoint"
     );
-    // here the context should be
-    // {
-    //   method,
-    //   token,
-    //   otherTokenValues,
-    //   urlTokenPath,
-    //   autoCompleteSet:{
-    //     name,
-    //     meta,
-    //     template,
-    //     ...
-    //   }
-    // }
   }
 
   function addUrlParamsAutoCompleteSetToContext(context: any, pos: Position) {
@@ -1028,16 +1023,8 @@ export default function ({
     callback: (...args: any[]) => void
   ) {
     try {
-      // context is
-      //  {
-      //   autoCompleteSet: null, // instructions for what can be here
-      //   endpoint: null,
-      //   urlPath: null,
-      //   method: null,
-      //   activeScheme: null,
-      //   editor: ctxEditor,
-      // }
       const context = getAutoCompleteContext(editor, position);
+      // if you wanna show autocomplete here, the context.autoCompleteSet should be like => [{name:'aaa', score:1, meta:'bbb'}];
       if (!context) {
         callback(null, []);
       } else {
