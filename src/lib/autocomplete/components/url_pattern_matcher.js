@@ -61,6 +61,7 @@ export class UrlPatternMatcher {
       }
       const endpointComponents = endpoint.url_components || {};
       const partList = pattern.split('/');
+      console.info('xxx', partList)
       _.each(
         partList,
         function (part, partIndex) {
@@ -125,7 +126,7 @@ export class UrlPatternMatcher {
               activeComponent = c;
             }
           }
-        },
+        }.bind(this), //FIXME:
         this
       );
       // mark end of endpoint path

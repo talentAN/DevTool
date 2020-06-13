@@ -18,8 +18,6 @@
  */
 
 import _ from "lodash";
-
-// TODO: All of these imports need to be moved to the core editor so that it can inject components from there.
 import {
   getTopLevelUrlCompleteComponents,
   getEndpointBodyCompleteComponents,
@@ -64,11 +62,11 @@ export function getCurrentMethodAndTokenPaths(
   parser: any,
   forceEndOfUrl?: boolean /* Flag for indicating whether we want to avoid early escape optimization. */
 ) {
+  // tokenIter is:  { tokenLineCache:{ { type: method, value, postion}, { type:whiteSpace, ....}, { type:url.part, ...}}, ... }
   const tokenIter = createTokenIterator({
     editor,
     position: pos,
   });
-  // tokenIter => { tokenLineCache:{ { type: method, value, postion}, { type:whiteSpace, ....}, { type:url.part, ...}}, ... }
   const startPos = pos;
   let bodyTokenPath: any = [];
   // what is ret? =>
@@ -81,13 +79,11 @@ export function getCurrentMethodAndTokenPaths(
   };
   let state = STATES.start;
 
-  // initialization problems
-  // t is => {postion, type:'url.part', value:"lalall"}
+  // t is: {postion, type:'url.part', value:"lalall"} => initialization problems
   let t = tokenIter.getCurrentToken();
   // handle if t not exists or the postion is first line
   if (t) {
     if (startPos.column === 1) {
-      console.log("xxx, is first line");
       // if we are at the beginning of the line, the current token is the one after cursor, not before which
       // deviates from the standard.
       t = tokenIter.stepBackward();
@@ -101,13 +97,14 @@ export function getCurrentMethodAndTokenPaths(
     }
   }
   let walkedSomeBody = false;
-
+  // console.info("zzz", t);
   // climb one scope at a time and get the scope key
   for (
     ;
     t && t.type.indexOf("url") === -1 && t.type !== "method";
     t = tokenIter.stepBackward()
   ) {
+    console.info("=> should not show this");
     if (t.type !== "whitespace") {
       walkedSomeBody = true;
     } // marks we saw something
@@ -214,9 +211,8 @@ export function getCurrentMethodAndTokenPaths(
         t.type === "url.value")
     ) {
       // we are forcing the end of the url for the purposes of determining an endpoint
-      // console.info('lalla', forceEndOfUrl, t.type==='url.part')
       if (forceEndOfUrl && t.type === "url.part") {
-        // console.info('-> 333')
+        console.info("-> should not run here");
         ret.urlTokenPath.push(t.value);
         ret.urlTokenPath.push(URL_PATH_END_MARKER);
       }
@@ -226,10 +222,10 @@ export function getCurrentMethodAndTokenPaths(
       while (t!.type === "whitespace") {
         t = tokenIter.stepBackward();
       }
+      // here t change to { type: method, value:GET, postion:{} }
     }
     bodyTokenPath = null; // no not on a body line.
   }
-  // console.info("xxx", ret);
 
   ret.bodyTokenPath = bodyTokenPath;
 
@@ -318,6 +314,7 @@ export function getCurrentMethodAndTokenPaths(
   if (t && t.type === "method") {
     ret.method = t.value;
   }
+  console.info("=>ret is :", ret);
   return ret;
 }
 
@@ -493,7 +490,7 @@ export default function ({
     //  context.updatedForToken.row = pos.row; // extend
     // console.info("xxx", context);
     context.autoCompleteType = getAutoCompleteType(pos);
-    console.info(`==> add ${context.autoCompleteType} auto complete`);
+    // console.info(`==> add ${context.autoCompleteType} auto complete`);
     switch (context.autoCompleteType) {
       case "path":
         addPathAutoCompleteSetToContext(context, pos);
@@ -844,16 +841,27 @@ export default function ({
   }
   // main function to get path autocomplete
   function addPathAutoCompleteSetToContext(context: any, pos: Position) {
+    // ret is
+    //  {
+    //   bodyTokenPath: null,
+    //   method: "POST",
+    //   requestStartRow: 8,
+    //   urlParamsTokenPath: null,
+    //   urlTokenPath: [],
+    //   
+    //   otherTokenValues?
+    // }
     const ret = getCurrentMethodAndTokenPaths(editor, pos, parser);
     context.method = ret.method;
     context.token = ret.token;
     context.otherTokenValues = ret.otherTokenValues;
     context.urlTokenPath = ret.urlTokenPath;
-    // what components for
+    // autoCompoles to use
     const components = getTopLevelUrlCompleteComponents(context.method);
     // what this method for
     populateContext(ret.urlTokenPath, context, editor, true, components);
-    // before doing this, the context.autoCompleteSet shoud be a valid array.
+    // before run next, the context.autoCompleteSet shoud be a valid array.
+    // console.info("=> final: ", context.autoCompleteSet);
     context.autoCompleteSet = addMetaToTermsList(
       context.autoCompleteSet,
       "endpoint"

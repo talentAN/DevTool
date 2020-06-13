@@ -17,7 +17,7 @@
  * under the License.
  */
 
-import _ from 'lodash';
+import _ from "lodash";
 
 export function wrapComponentWithDefaults(component, defaults) {
   const originalGetTerms = component.getTerms;
@@ -40,7 +40,7 @@ export function wrapComponentWithDefaults(component, defaults) {
   };
   return component;
 }
-
+// this is a console.log
 const tracer = function () {
   if (window.engine_trace) {
     console.log.call(console, ...arguments);
@@ -60,7 +60,13 @@ function passThroughContext(context, extensionList) {
   return result;
 }
 
-export function WalkingState(parentName, components, contextExtensionList, depth, priority) {
+export function WalkingState(
+  parentName,
+  components,
+  contextExtensionList,
+  depth,
+  priority
+) {
   this.parentName = parentName;
   this.components = components;
   this.contextExtensionList = contextExtensionList;
@@ -74,16 +80,22 @@ export function walkTokenPath(tokenPath, walkingStates, context, editor) {
   }
   const token = tokenPath[0];
   const nextWalkingStates = [];
-
-  tracer('starting token evaluation [' + token + ']');
+  // console, useless for us
+  tracer("starting token evaluation [" + token + "]");
 
   _.each(walkingStates, function (ws) {
-    const contextForState = passThroughContext(context, ws.contextExtensionList);
+    const contextForState = passThroughContext(
+      context,
+      ws.contextExtensionList
+    );
     _.each(ws.components, function (component) {
-      tracer('evaluating [' + token + '] with [' + component.name + ']', component);
+      tracer(
+        "evaluating [" + token + "] with [" + component.name + "]",
+        component
+      );
       const result = component.match(token, contextForState, editor);
       if (result && !_.isEmpty(result)) {
-        tracer('matched [' + token + '] with:', result);
+        tracer("matched [" + token + "] with:", result);
         let next;
         let extensionList;
         if (result.next && !Array.isArray(result.next)) {
@@ -109,7 +121,13 @@ export function walkTokenPath(tokenPath, walkingStates, context, editor) {
         }
 
         nextWalkingStates.push(
-          new WalkingState(component.name, next, extensionList, ws.depth + 1, priority)
+          new WalkingState(
+            component.name,
+            next,
+            extensionList,
+            ws.depth + 1,
+            priority
+          )
         );
       }
     });
@@ -125,17 +143,26 @@ export function walkTokenPath(tokenPath, walkingStates, context, editor) {
   return walkTokenPath(tokenPath.slice(1), nextWalkingStates, context, editor);
 }
 
-export function populateContext(tokenPath, context, editor, includeAutoComplete, components) {
+export function populateContext(
+  tokenPath,
+  context,
+  editor,
+  includeAutoComplete,
+  components
+) {
   let walkStates = walkTokenPath(
     tokenPath,
-    [new WalkingState('ROOT', components, [])],
+    [new WalkingState("ROOT", components, [])],
     context,
     editor
   );
   if (includeAutoComplete) {
     let autoCompleteSet = [];
     _.each(walkStates, function (ws) {
-      const contextForState = passThroughContext(context, ws.contextExtensionList);
+      const contextForState = passThroughContext(
+        context,
+        ws.contextExtensionList
+      );
       _.each(ws.components, function (component) {
         _.each(component.getTerms(contextForState, editor), function (term) {
           if (!_.isObject(term)) {

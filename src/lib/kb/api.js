@@ -17,13 +17,13 @@
  * under the License.
  */
 
-import _ from 'lodash';
-import { UrlPatternMatcher } from '../autocomplete/components';
-import { UrlParams } from '../autocomplete/url_params';
+import _ from "lodash";
+import { UrlPatternMatcher } from "../autocomplete/components";
+import { UrlParams } from "../autocomplete/url_params";
 import {
   globalsOnlyAutocompleteComponents,
   compileBodyDescription,
-} from '../autocomplete/body_completer';
+} from "../autocomplete/body_completer";
 
 /**
  *
@@ -33,18 +33,23 @@ import {
  * @constructor
  * @param bodyParametrizedComponentFactories same as urlParametrizedComponentFactories but used for body compilation
  */
-function Api(urlParametrizedComponentFactories, bodyParametrizedComponentFactories) {
+function Api(
+  urlParametrizedComponentFactories,
+  bodyParametrizedComponentFactories
+) {
   this.globalRules = Object.create(null);
   this.endpoints = Object.create(null);
-  this.urlPatternMatcher = new UrlPatternMatcher(urlParametrizedComponentFactories);
+  this.urlPatternMatcher = new UrlPatternMatcher(
+    urlParametrizedComponentFactories
+  );
   this.globalBodyComponentFactories = bodyParametrizedComponentFactories;
-  this.name = '';
+  this.name = "";
 }
 
 (function (cls) {
   cls.addGlobalAutocompleteRules = function (parentNode, rules) {
     this.globalRules[parentNode] = compileBodyDescription(
-      'GLOBAL.' + parentNode,
+      "GLOBAL." + parentNode,
       rules,
       this.globalBodyComponentFactories
     );
@@ -52,8 +57,13 @@ function Api(urlParametrizedComponentFactories, bodyParametrizedComponentFactori
 
   cls.getGlobalAutocompleteComponents = function (term, throwOnMissing) {
     const result = this.globalRules[term];
-    if (_.isUndefined(result) && (throwOnMissing || _.isUndefined(throwOnMissing))) {
-      throw new Error("failed to resolve global components for  ['" + term + "']");
+    if (
+      _.isUndefined(result) &&
+      (throwOnMissing || _.isUndefined(throwOnMissing))
+    ) {
+      throw new Error(
+        "failed to resolve global components for  ['" + term + "']"
+      );
     }
     return result;
   };
@@ -64,17 +74,20 @@ function Api(urlParametrizedComponentFactories, bodyParametrizedComponentFactori
     _.defaults(copiedDescription, {
       id: endpoint,
       patterns: [endpoint],
-      methods: ['GET'],
+      methods: ["GET"],
     });
+    // console.info("yyy", this, _);
     _.each(
       copiedDescription.patterns,
       function (p) {
+        // console.info("xxx", this);
         this.urlPatternMatcher.addEndpoint(p, copiedDescription);
-      },
+      }.bind(this), //FIXME:
       this
     );
-
-    copiedDescription.paramsAutocomplete = new UrlParams(copiedDescription.url_params);
+    copiedDescription.paramsAutocomplete = new UrlParams(
+      copiedDescription.url_params
+    );
     copiedDescription.bodyAutocompleteRootComponents = compileBodyDescription(
       copiedDescription.id,
       copiedDescription.data_autocomplete_rules,

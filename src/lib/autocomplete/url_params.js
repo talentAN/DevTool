@@ -67,7 +67,7 @@ export class UrlParams {
         } else if (pDescription === "__flag__") {
           new ListComponent(param, ["true", "false"], component);
         }
-      },
+      }.bind(this), //FIXME:
       this
     );
   }
