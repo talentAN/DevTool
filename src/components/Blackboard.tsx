@@ -7,25 +7,24 @@ import "brace/mode/javascript";
 import "brace/theme/monokai";
 import "./DevTool.scss";
 
-const useStyles = (params: any) => {
-  return makeStyles({
-    root: {
-      position: "relative",
-      width: "50%",
-      top: `0 !important`,
-      display: "flex",
-      "& #blackboard": {
-        flexGrow: 1,
-      },
+const useStyles = makeStyles({
+  root: {
+    position: "relative",
+    width: "50%",
+    top: `0 !important`,
+    display: "flex",
+    "& #blackboard": {
+      flexGrow: 1,
     },
-  })();
-};
+  },
+});
 
 const Blackboard = (props: any) => {
   const { value } = props;
   const classes = useStyles({});
   const blackboardRef: any = useRef(null);
   const isFirstRun = useRef(true);
+
   useEffect(() => {
     if (isFirstRun.current) {
       isFirstRun.current = false;

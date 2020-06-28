@@ -1,12 +1,11 @@
 import React, { useState, useEffect, useRef } from "react";
 import { makeStyles } from "@material-ui/styles";
-import IconButton from "@material-ui/core/IconButton";
-import ArrowRightIcon from "@material-ui/icons/ArrowRight";
-import DeleteIcon from "@material-ui/icons/Delete";
 import { create } from "../models/sense_editor";
-import { useUIAceKeyboardMode } from "../plugins/use_ui_ace_keyboard_mode";
+// is this necessary for us?
+// import { useUIAceKeyboardMode } from "../plugins/use_ui_ace_keyboard_mode";
 import * as CONSTS from "../consts";
 import Actions from "./Actions";
+import { debounce } from "../utils/helpers/Purefns";
 import "./DevTool.scss";
 
 const inputId = "ConAppInputTextarea";
@@ -37,10 +36,11 @@ const Editor = (props: any) => {
   const { requester, handleRes } = props;
   const editorRef = useRef<HTMLDivElement | null>(null);
   const editorInstanceRef: any = useRef(null);
-  const [textArea, setTextArea] = useState<HTMLTextAreaElement | null>(null);
   const [actionTop, setActionTop] = useState(0);
   const classes = useStyles({ actionTop });
-  useUIAceKeyboardMode(textArea);
+  // const [textArea, setTextArea] = useState<HTMLTextAreaElement | null>(null);
+  // useUIAceKeyboardMode(textArea);
+
   useEffect(() => {
     // create a senseEditor
     editorInstanceRef.current = create(editorRef.current!);
@@ -58,32 +58,26 @@ const Editor = (props: any) => {
     // auto calculate marker postions when cursor change or scroll
     const Div_Scroll = document.querySelector(".ace_scrollbar")!;
 
-    let timeout: any;
-    const _setActionTop = () => {
-      if (timeout) {
-        clearTimeout(timeout);
+    const _setActionTop = debounce(function () {
+      const currentReqRange = editor.currentReqRange;
+      if (currentReqRange) {
+        const startLine = currentReqRange.start.lineNumber;
+        const div: any = document.querySelector(".ace_line_group")!;
+        const height =
+          Number.parseFloat(div && div.style && div.style.height) || 16;
+        let top = (startLine - 1) * height - Div_Scroll.scrollTop;
+        setActionTop(top);
+      } else {
+        setActionTop(999999);
       }
-      timeout = setTimeout(() => {
-        const currentReqRange = editor.currentReqRange;
-        if (currentReqRange) {
-          const startLine = currentReqRange.start.lineNumber;
-          const div: any = document.querySelector(".ace_line_group")!;
-          const height =
-            Number.parseFloat(div && div.style && div.style.height) || 16;
-          let top = (startLine - 1) * height - Div_Scroll.scrollTop;
-          setActionTop(top);
-        } else {
-          setActionTop(999999);
-        }
-      }, 50);
-    };
+    });
     coreEditor.on("changeCursor", () => {
       _setActionTop();
     });
     Div_Scroll.addEventListener("scroll", (e: any) => {
       _setActionTop();
     });
-    setTextArea(textareaElement);
+    // setTextArea(textareaElement);
   }, []);
 
   return (
