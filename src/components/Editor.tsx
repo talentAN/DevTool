@@ -1,11 +1,3 @@
-/**
- * Main Target
- * - interface for request and handleRes => done
- * - highlight => done
- * - Get request fail
- * - auto complete => doing
- * - merge into Milvus =>
- */
 import React, { useState, useEffect, useRef } from "react";
 import { makeStyles } from "@material-ui/styles";
 import IconButton from "@material-ui/core/IconButton";
@@ -14,6 +6,7 @@ import DeleteIcon from "@material-ui/icons/Delete";
 import { create } from "../models/sense_editor";
 import { useUIAceKeyboardMode } from "../plugins/use_ui_ace_keyboard_mode";
 import * as CONSTS from "../consts";
+import Actions from "./Actions";
 import "./DevTool.scss";
 
 const inputId = "ConAppInputTextarea";
@@ -39,11 +32,6 @@ const useStyles = (params: any) => {
     },
   })();
 };
-const _parseReq = (request: any) => {
-  const { method, data, url } = request;
-  const params = JSON.parse(data[0].split("\n").join(""));
-  return { method, url, params };
-};
 
 const Editor = (props: any) => {
   const { requester, handleRes } = props;
@@ -53,26 +41,6 @@ const Editor = (props: any) => {
   const [actionTop, setActionTop] = useState(0);
   const classes = useStyles({ actionTop });
   useUIAceKeyboardMode(textArea);
-
-  const getSession = async (e: any) => {
-    if (editorInstanceRef.current) {
-      const editor = editorInstanceRef.current;
-      console.info(
-        editor.getCoreEditor().editor.getSession().doc.$lines.join("\r")
-      );
-    }
-  };
-  const getRequests = async (e: any) => {
-    if (editorInstanceRef.current) {
-      const editor = editorInstanceRef.current;
-      editor.getRequestsInRange().then((res: any) => {
-        Promise.all(
-          res.map((data: any) => requester(_parseReq(data)))
-        ).then((results: any) => handleRes(results));
-      });
-    }
-  };
-
   useEffect(() => {
     // create a senseEditor
     editorInstanceRef.current = create(editorRef.current!);
@@ -119,19 +87,15 @@ const Editor = (props: any) => {
   }, []);
 
   return (
-    <>
-      <div className={classes.root}>
-        <div className={classes.actions}>
-          <IconButton size="small" onClick={getSession}>
-            <DeleteIcon fontSize="small" />
-          </IconButton>
-          <IconButton size="small" onClick={getRequests}>
-            <ArrowRightIcon fontSize="small" />
-          </IconButton>
-        </div>
-        <div ref={editorRef} id={EditorID} />
-      </div>
-    </>
+    <div className={classes.root}>
+      <Actions
+        top={actionTop}
+        editor={editorInstanceRef.current}
+        requester={requester}
+        handleRes={handleRes}
+      />
+      <div ref={editorRef} id={EditorID} />
+    </div>
   );
 };
 

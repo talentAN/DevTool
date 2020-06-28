@@ -12,3 +12,7 @@ autocomplete
 
 ### what in CoreEditor
 there's a lot event listener in CoreEditor, and the callback should be registered when new SenseEditor
+
+### Issue List
+- custom actions
+- 
