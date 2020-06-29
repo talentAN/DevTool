@@ -18,7 +18,7 @@
  */
 
 import ace from "brace";
-import { addXJsonToRules } from "../../../modes";
+import { addXJsonToRules } from "../../modes";
 // is EOL is end of line?
 export function addEOL(tokens, reg, nextIfEOL, normalNext) {
   if (typeof reg === "object") {

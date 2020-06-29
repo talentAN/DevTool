@@ -7,7 +7,7 @@
 
 import ace from "brace";
 import { Editor as IAceEditor, IEditSession as IAceEditSession } from "brace";
-import { collapseLiteralStrings } from "../../lib/json_xjson_translation_tools";
+import { collapseLiteralStrings } from "../lib/json_xjson_translation_tools";
 import _ from "lodash";
 import {
   CoreEditor,
@@ -17,16 +17,16 @@ import {
   TokensProvider,
   EditorEvent,
   AutoCompleterFunction,
-} from "../../types";
-import { AceTokensProvider } from "../../lib/ace_token_provider";
-import { createTokenIterator } from "../../lib/factories";
-import * as curl from "../../utils/helpers/Curl";
-import { smartResize } from "../../utils/helpers/Editor";
+} from "../types";
+import { AceTokensProvider } from "../lib/ace_token_provider";
+import { createTokenIterator } from "../lib/factories";
+import * as curl from "../utils/helpers/Curl";
+import { smartResize } from "../utils/helpers/Editor";
 // @ts-ignore
 import * as InputMode from "./mode/input";
-import RowParser from "../../utils/helpers/_RowParser";
-import Autocomplete from "../../lib/autocomplete/autocomplete";
-import * as utils from "../../lib/utils";
+import RowParser from "../utils/helpers/_RowParser";
+import Autocomplete from "../lib/autocomplete/autocomplete";
+import * as utils from "../lib/utils";
 const _AceRange = ace.acequire("ace/range").Range;
 
 function constructESUrl(baseUri: string, path: string) {

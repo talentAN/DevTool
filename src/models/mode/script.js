@@ -17,15 +17,17 @@
  * under the License.
  */
 
-import ace from 'brace';
-import { ScriptHighlightRules } from '../../../modes';
+import ace from "brace";
+import { ScriptHighlightRules } from "../../modes";
 
-const oop = ace.acequire('ace/lib/oop');
-const TextMode = ace.acequire('ace/mode/text').Mode;
-const MatchingBraceOutdent = ace.acequire('ace/mode/matching_brace_outdent').MatchingBraceOutdent;
-const CstyleBehaviour = ace.acequire('ace/mode/behaviour/cstyle').CstyleBehaviour;
-const CStyleFoldMode = ace.acequire('ace/mode/folding/cstyle').FoldMode;
-ace.acequire('ace/tokenizer');
+const oop = ace.acequire("ace/lib/oop");
+const TextMode = ace.acequire("ace/mode/text").Mode;
+const MatchingBraceOutdent = ace.acequire("ace/mode/matching_brace_outdent")
+  .MatchingBraceOutdent;
+const CstyleBehaviour = ace.acequire("ace/mode/behaviour/cstyle")
+  .CstyleBehaviour;
+const CStyleFoldMode = ace.acequire("ace/mode/folding/cstyle").FoldMode;
+ace.acequire("ace/tokenizer");
 
 export function ScriptMode() {
   this.$outdent = new MatchingBraceOutdent();

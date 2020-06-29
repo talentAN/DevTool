@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { makeStyles } from "@material-ui/styles";
-import { create } from "../models/legacy_core_editor";
+import { create } from "../models";
 // is this necessary for us?
 // import { useUIAceKeyboardMode } from "../plugins/use_ui_ace_keyboard_mode";
 import * as CONSTS from "../consts";

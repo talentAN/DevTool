@@ -266,5 +266,4 @@ export interface CoreEditor {
    */
   registerAutocompleter(autocompleter: AutoCompleterFunction): void;
 
-  currentReqRange?: any;
 }
