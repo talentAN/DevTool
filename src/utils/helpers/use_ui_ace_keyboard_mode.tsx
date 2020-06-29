@@ -30,6 +30,7 @@ const OverlayText = () => (
   </>
 );
 
+// useless for us at the moment. 
 export function useUIAceKeyboardMode(
   aceTextAreaElement: HTMLTextAreaElement | null
 ) {

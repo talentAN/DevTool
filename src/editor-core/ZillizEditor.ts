@@ -24,7 +24,6 @@ import Autocomplete from "../lib/autocomplete/autocomplete";
 import * as utils from "../lib/utils";
 import * as curl from "../utils/helpers/Curl";
 import { smartResize } from "../utils/helpers/Editor";
-// @ts-ignore
 import RowParser from "../utils/helpers/_RowParser";
 import * as InputMode from "./mode/input";
 const _AceRange = ace.acequire("ace/range").Range;

@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { makeStyles } from "@material-ui/styles";
 import { create } from "../editor-core";
 // is this necessary for us?
-// import { useUIAceKeyboardMode } from "../plugins/use_ui_ace_keyboard_mode";
+// import { useUIAceKeyboardMode } from "../utils/helpers/use_ui_ace_keyboard_mode";
 import * as CONSTS from "../consts";
 import Actions from "./Actions";
 import { debounce } from "../utils/helpers/PureFns";
