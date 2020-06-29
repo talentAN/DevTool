@@ -20,7 +20,7 @@ import {
 } from "../../types";
 import { AceTokensProvider } from "../../lib/ace_token_provider";
 import { createTokenIterator } from "../../lib/factories";
-import * as curl from "../sense_editor/curl";
+import * as curl from "../../utils/helpers/Curl";
 import { smartResize } from "../../utils/helpers/Editor";
 // @ts-ignore
 import * as InputMode from "./mode/input";
