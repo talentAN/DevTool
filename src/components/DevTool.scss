@@ -12,20 +12,6 @@
   flex-direction: column;
 }
 
-//temp:
-#json-editor,
-#javascript-editor {
-  top: 0;
-  left: 0;
-  bottom: 0;
-}
-
-#CoreEditor {
-  height: 100%;
-  flex: 1 1 1px;
-}
-
-
 // SASSTODO: Replace with an EUI editor
 // Intentionally not using the EuiCodeBlock colors here because they actually change
 // hue from light to dark theme. So some colors would change while others wouldn't.

@@ -3,13 +3,6 @@ import { makeStyles } from "@material-ui/styles";
 import Editor from "./Editor";
 import Blackboard from "./Blackboard";
 
-/**
- *
- * TODO:
- * - delete all warnings
- * - refactor structor
- * - split issues
- */
 const useStyles = makeStyles({
   root: {
     flexGrow: 1,

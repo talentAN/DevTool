@@ -5,7 +5,6 @@ import { PureBlackboard } from "../editor-core/blackboard";
 import * as ace from "brace";
 import "brace/mode/javascript";
 import "brace/theme/monokai";
-import "./DevTool.scss";
 
 const useStyles = makeStyles({
   root: {
@@ -39,7 +38,7 @@ const Blackboard = (props: any) => {
   }, [value]);
 
   return (
-    <div className={clsx(classes.root)}>
+    <div className={classes.root}>
       <div id="blackboard" />
     </div>
   );

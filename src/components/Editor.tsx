@@ -16,6 +16,10 @@ const useStyles = makeStyles({
     width: "50%",
     top: `0 !important`,
   },
+  wrapper: {
+    flex: "1 1 1px",
+    height: "100%",
+  },
 });
 
 const Editor = (props: any) => {
@@ -28,7 +32,7 @@ const Editor = (props: any) => {
   // useUIAceKeyboardMode(textArea);
 
   useEffect(() => {
-    // create a senseEditor
+    // create a ZillizEditor instance.
     const editor = create(editorRef.current!);
     editorInstanceRef.current = editor;
     const textareaElement = editorRef.current!.querySelector("textarea");
@@ -42,7 +46,7 @@ const Editor = (props: any) => {
 
     // auto calculate marker postions when cursor change or scroll
     const Div_Scroll = document.querySelector(".ace_scrollbar")!;
-
+    // set the postion of ActionBar
     const _setActionTop = debounce(function () {
       const currentReqRange = editor.currentReqRange;
       if (currentReqRange) {
@@ -73,7 +77,7 @@ const Editor = (props: any) => {
         requester={requester}
         handleRes={handleRes}
       />
-      <div ref={editorRef} id={EditorID} />
+      <div ref={editorRef} id={EditorID} className={classes.wrapper} />
     </div>
   );
 };

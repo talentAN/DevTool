@@ -822,7 +822,7 @@ function _constructESUrl(baseUri: string, path: string) {
   return baseUri + "/" + path;
 }
 
-// brace line start with 1, we hope it start with 0 for better operation
+// brace line start with 1, we hope it start with 0 for better operation. You might show the same operation in other functions
 function _rangeToAceRange({ start, end }: Range) {
   return new _AceRange(
     start.lineNumber - 1,
