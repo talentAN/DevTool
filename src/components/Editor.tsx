@@ -5,7 +5,7 @@ import { create } from "../models/sense_editor";
 // import { useUIAceKeyboardMode } from "../plugins/use_ui_ace_keyboard_mode";
 import * as CONSTS from "../consts";
 import Actions from "./Actions";
-import { debounce } from "../utils/helpers/Purefns";
+import { debounce } from "../utils/helpers/PureFns";
 import "./DevTool.scss";
 
 const inputId = "ConAppInputTextarea";

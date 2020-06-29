@@ -31,16 +31,16 @@ const Actions = (props: any) => {
   const { top, editor, requester, handleRes } = props;
   const classes = useStyles({ top });
   const getSession = async (e: any) => {
-    console.info(
-      editor.getCoreEditor().editor.getSession().doc.$lines.join("\r")
-    );
+    editor &&
+      console.info(editor.getCoreEditor().editor.getSession().getState(2));
   };
   const getRequests = async (e: any) => {
-    editor.getRequestsInRange().then((res: any) => {
-      Promise.all(
-        res.map((data: any) => requester(_parseReq(data)))
-      ).then((results: any) => handleRes(results));
-    });
+    editor &&
+      editor.getRequestsInRange().then((res: any) => {
+        Promise.all(
+          res.map((data: any) => requester(_parseReq(data)))
+        ).then((results: any) => handleRes(results));
+      });
   };
   return (
     <div className={classes.actions}>

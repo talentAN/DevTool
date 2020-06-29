@@ -1,3 +1,6 @@
+/**
+ * note: brace is a very powerful eidtor base on ace while its api is also complex. So we wrappe some apis which are frequently used, it'll be better for us to use it.
+ */
 import ace from "brace";
 import { Editor as IAceEditor, IEditSession as IAceEditSession } from "brace";
 import {
@@ -11,13 +14,12 @@ import {
 } from "../../types";
 import { AceTokensProvider } from "../../lib/ace_token_provider";
 import * as curl from "../sense_editor/curl";
-import smartResize from "./smart_resize";
-
+import { smartResize } from "../../utils/helpers/Editor";
 // @ts-ignore
 import * as InputMode from "./mode/input";
-
 const _AceRange = ace.acequire("ace/range").Range;
 
+// brace line start with 1, we hope it start with 0 for better operation
 const rangeToAceRange = ({ start, end }: Range) =>
   new _AceRange(
     start.lineNumber - 1,
@@ -26,13 +28,13 @@ const rangeToAceRange = ({ start, end }: Range) =>
     end.column - 1
   );
 
-export class LegacyCoreEditor implements CoreEditor {
+export class ZillizEditor implements CoreEditor {
   private _aceOnPaste: any;
   resize: () => void;
 
   constructor(private readonly editor: IAceEditor) {
     this.editor.setShowPrintMargin(false);
-
+    // init Editor style
     const session = this.editor.getSession();
     session.setMode(new InputMode.Mode() as any);
     (session as any).setFoldStyle("markbeginend");
@@ -41,21 +43,20 @@ export class LegacyCoreEditor implements CoreEditor {
 
     this.resize = smartResize(this.editor);
 
-    // Intercept ace on paste handler.
+    // We want it to be formatted to standard json automaticly when paste a curl string on editor.
+    // So we intercept ace on paste handler.
     this._aceOnPaste = this.editor.onPaste;
     this.editor.onPaste = this.DO_NOT_USE_onPaste.bind(this);
 
     this.editor.setOptions({
       enableBasicAutocompletion: true,
     });
-    // this.editor.container.style.fontSize = "1rem";
-    // this.editor.container.style.lineHeight = "normal";
     this.editor.$blockScrolling = Infinity;
     this.editor.focus();
   }
 
-  // dirty check for tokenizer state, uses a lot less cycles
-  // than listening for tokenizerUpdate
+  // dirty check for tokenizer state, uses a lot less cycles than listening for tokenizerUpdate
+  // TODO: didn't verify yet
   waitForLatestTokens(): Promise<void> {
     return new Promise((resolve) => {
       const session = this.editor.getSession();
@@ -77,7 +78,7 @@ export class LegacyCoreEditor implements CoreEditor {
       setTimeout(check, 0);
     });
   }
-  // wrapper for brace
+  // wrappers for Brace start
   getLineState(lineNumber: number) {
     const session = this.editor.getSession();
     return session.getState(lineNumber - 1);
@@ -209,20 +210,28 @@ export class LegacyCoreEditor implements CoreEditor {
   getWrapLimit(): number {
     return this.editor.getSession().getWrapLimit();
   }
-  // 事件的统一封装
+  // interface for all events
   on(event: EditorEvent, listener: () => void) {
-    if (event === "changeCursor") {
-      this.editor.getSession().selection.on(event, listener);
-    } else if (event === "changeSelection") {
-      this.editor.on(event, listener);
-    } else {
-      this.editor.getSession().on(event, listener);
+    switch (event) {
+      case "changeCursor":
+        this.editor.getSession().selection.on(event, listener);
+        break;
+      case "changeSelection":
+        this.editor.on(event, listener);
+        break;
+      default:
+        this.editor.getSession().on(event, listener);
+        break;
     }
   }
 
   off(event: EditorEvent, listener: () => void) {
-    if (event === "changeSelection") {
-      this.editor.off(event, listener);
+    switch (event) {
+      case "changeSelection":
+        this.editor.off(event, listener);
+        break;
+      default:
+        break;
     }
   }
 
@@ -248,6 +257,7 @@ export class LegacyCoreEditor implements CoreEditor {
   }
 
   // eslint-disable-next-line @typescript-eslint/camelcase
+  // if we past a curl string, it will be parsed to JSON automaticly, if we don't want this function, just rm code in if
   private DO_NOT_USE_onPaste(text: string) {
     if (text && curl.detectCURL(text)) {
       const curlInput = curl.parseCURL(text);

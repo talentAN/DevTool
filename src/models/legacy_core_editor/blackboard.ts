@@ -1,5 +1,5 @@
 import { Editor as IAceEditor } from "brace";
-import smartResize from "./smart_resize";
+import { smartResize } from "../../utils/helpers/Editor";
 
 // @ts-ignore
 import * as InputMode from "./mode/input";
@@ -25,4 +25,3 @@ export class PureBlackboard {
     this.editor.$blockScrolling = Infinity;
   }
 }
-

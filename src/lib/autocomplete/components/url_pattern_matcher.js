@@ -61,7 +61,7 @@ export class UrlPatternMatcher {
       }
       const endpointComponents = endpoint.url_components || {};
       const partList = pattern.split('/');
-      console.info('xxx', partList)
+      // console.info('xxx', partList)
       _.each(
         partList,
         function (part, partIndex) {

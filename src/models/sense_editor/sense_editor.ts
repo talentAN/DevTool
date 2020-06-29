@@ -1,4 +1,3 @@
-//zilliz
 import _ from "lodash";
 import RowParser from "../../lib/RowParser";
 import { collapseLiteralStrings } from "../../lib/json_xjson_translation_tools";
