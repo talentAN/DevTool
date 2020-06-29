@@ -265,4 +265,6 @@ export interface CoreEditor {
    * detects a change
    */
   registerAutocompleter(autocompleter: AutoCompleterFunction): void;
+
+  currentReqRange?: any;
 }

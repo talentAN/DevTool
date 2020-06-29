@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { makeStyles } from "@material-ui/styles";
-import { create } from "../models/sense_editor";
+import { create } from "../models/legacy_core_editor";
 // is this necessary for us?
 // import { useUIAceKeyboardMode } from "../plugins/use_ui_ace_keyboard_mode";
 import * as CONSTS from "../consts";
@@ -53,7 +53,6 @@ const Editor = (props: any) => {
 
     // set init value for test
     editor.update(CONSTS.DEFAULT_INPUT_VALUE);
-    const coreEditor = editor.getCoreEditor();
 
     // auto calculate marker postions when cursor change or scroll
     const Div_Scroll = document.querySelector(".ace_scrollbar")!;
@@ -71,7 +70,7 @@ const Editor = (props: any) => {
         setActionTop(999999);
       }
     });
-    coreEditor.on("changeCursor", () => {
+    editor.on("changeCursor", () => {
       _setActionTop();
     });
     Div_Scroll.addEventListener("scroll", (e: any) => {

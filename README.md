@@ -18,3 +18,4 @@ there's a lot event listener in CoreEditor, and the callback should be registere
 - custom actions
 - smart resize => always keep current top line in view
 - smart paste => format curl to json automatically
+- split helper to one file

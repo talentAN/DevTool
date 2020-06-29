@@ -7,6 +7,8 @@
 
 import ace from "brace";
 import { Editor as IAceEditor, IEditSession as IAceEditSession } from "brace";
+import { collapseLiteralStrings } from "../../lib/json_xjson_translation_tools";
+import _ from "lodash";
 import {
   CoreEditor,
   Position,
@@ -17,11 +19,21 @@ import {
   AutoCompleterFunction,
 } from "../../types";
 import { AceTokensProvider } from "../../lib/ace_token_provider";
+import { createTokenIterator } from "../../lib/factories";
 import * as curl from "../sense_editor/curl";
 import { smartResize } from "../../utils/helpers/Editor";
 // @ts-ignore
 import * as InputMode from "./mode/input";
+import RowParser from "../../utils/helpers/_RowParser";
+import Autocomplete from "../../lib/autocomplete/autocomplete";
+import * as utils from "../../lib/utils";
 const _AceRange = ace.acequire("ace/range").Range;
+
+function constructESUrl(baseUri: string, path: string) {
+  baseUri = baseUri.replace(/\/+$/, "");
+  path = path.replace(/^\/+/, "");
+  return baseUri + "/" + path;
+}
 
 // brace line start with 1, we hope it start with 0 for better operation
 const rangeToAceRange = ({ start, end }: Range) =>
@@ -35,6 +47,9 @@ const rangeToAceRange = ({ start, end }: Range) =>
 export class ZillizEditor implements CoreEditor {
   private _aceOnPaste: any;
   resize: () => void;
+  currentReqRange: any;
+  parser: any;
+  autocomplete: any;
 
   constructor(private readonly editor: IAceEditor) {
     this.editor.setShowPrintMargin(false);
@@ -58,6 +73,23 @@ export class ZillizEditor implements CoreEditor {
     });
     this.editor.$blockScrolling = Infinity;
     this.editor.focus();
+
+    // register eventsHandlers, autocomplete and other functions
+    this.currentReqRange = null;
+    this.parser = new RowParser(this);
+    this.autocomplete = new (Autocomplete as any)({
+      coreEditor: this,
+      parser: this.parser,
+    });
+    this.registerAutocompleter(this.autocomplete.getCompletions);
+    this.on(
+      "tokenizerUpdate",
+      this.highlightCurrentRequestsAndUpdateActionBar.bind(this)
+    );
+    this.on(
+      "changeCursor",
+      this.highlightCurrentRequestsAndUpdateActionBar.bind(this)
+    );
   }
 
   // dirty check for tokenizer state, uses a lot less cycles than listening for tokenizerUpdate
@@ -343,4 +375,459 @@ export class ZillizEditor implements CoreEditor {
       },
     ]);
   }
+
+  // coped from sense_editor
+  highlightCurrentRequestsAndUpdateActionBar = _.debounce(async () => {
+    await this.waitForLatestTokens();
+    const expandedRange = await this.expandRangeToRequestEdges();
+    if (expandedRange === null && this.currentReqRange === null) {
+      return;
+    }
+    if (
+      expandedRange !== null &&
+      this.currentReqRange !== null &&
+      expandedRange.start.lineNumber ===
+        this.currentReqRange.start.lineNumber &&
+      expandedRange.end.lineNumber === this.currentReqRange.end.lineNumber
+    ) {
+      return; // nothing to do..
+    }
+
+    if (this.currentReqRange) {
+      this.removeMarker(this.currentReqRange.markerRef);
+    }
+
+    this.currentReqRange = expandedRange as any;
+    if (this.currentReqRange) {
+      this.currentReqRange.markerRef = this.addMarker(this.currentReqRange);
+    }
+  }, 25);
+  // split valid requestes start and end line;
+  expandRangeToRequestEdges = async (
+    range = this.getSelectionRange()
+  ): Promise<Range | null> => {
+    await this.waitForLatestTokens();
+
+    let startLineNumber = range.start.lineNumber;
+    let endLineNumber = range.end.lineNumber;
+    const maxLine = Math.max(1, this.getLineCount());
+
+    if (this.parser.isInBetweenRequestsRow(startLineNumber)) {
+      /* Do nothing... */
+    } else {
+      for (; startLineNumber >= 1; startLineNumber--) {
+        if (this.parser.isStartRequestRow(startLineNumber)) {
+          break;
+        }
+      }
+    }
+
+    if (startLineNumber < 1 || startLineNumber > endLineNumber) {
+      return null;
+    }
+    // move end row to the previous request end if between requests, otherwise walk forward
+    if (this.parser.isInBetweenRequestsRow(endLineNumber)) {
+      for (; endLineNumber >= startLineNumber; endLineNumber--) {
+        if (this.parser.isEndRequestRow(endLineNumber)) {
+          break;
+        }
+      }
+    } else {
+      for (; endLineNumber <= maxLine; endLineNumber++) {
+        if (this.parser.isEndRequestRow(endLineNumber)) {
+          break;
+        }
+      }
+    }
+
+    if (endLineNumber < startLineNumber || endLineNumber > maxLine) {
+      return null;
+    }
+
+    const endColumn =
+      (this.getLineValue(endLineNumber) || "").replace(/\s+$/, "").length + 1;
+    return {
+      start: {
+        lineNumber: startLineNumber,
+        column: 1,
+      },
+      end: {
+        lineNumber: endLineNumber,
+        column: endColumn,
+      },
+    };
+  };
+
+  // helper for getRequestRange, return {lineNumber: curRow,column: 1,}
+  prevRequestStart = (rowOrPos?: number | Position): Position => {
+    let curRow: number;
+
+    if (rowOrPos == null) {
+      curRow = this.getCurrentPosition().lineNumber;
+    } else if (_.isObject(rowOrPos)) {
+      curRow = (rowOrPos as Position).lineNumber;
+    } else {
+      curRow = rowOrPos as number;
+    }
+    while (curRow > 0 && !this.parser.isStartRequestRow(curRow, this)) curRow--;
+
+    return {
+      lineNumber: curRow,
+      column: 1,
+    };
+  };
+  // helper for getRequestRange, return {lineNumber: curRow,column: 0}
+  nextRequestStart = (rowOrPos?: number | Position) => {
+    let curRow: number;
+    if (rowOrPos == null) {
+      curRow = this.getCurrentPosition().lineNumber;
+    } else if (_.isObject(rowOrPos)) {
+      curRow = (rowOrPos as Position).lineNumber;
+    } else {
+      curRow = rowOrPos as number;
+    }
+    const maxLines = this.getLineCount();
+    for (; curRow < maxLines - 1; curRow++) {
+      if (this.parser.isStartRequestRow(curRow, this)) {
+        break;
+      }
+    }
+    return {
+      row: curRow,
+      column: 0,
+    };
+  };
+
+  autoIndent = _.debounce(async () => {
+    await this.waitForLatestTokens();
+    const reqRange = await this.getRequestRange();
+    if (!reqRange) {
+      return;
+    }
+    const parsedReq = await this.getRequest();
+
+    if (!parsedReq) {
+      return;
+    }
+
+    if (parsedReq.data && parsedReq.data.length > 0) {
+      let indent = parsedReq.data.length === 1; // unindent multi docs by default
+      let formattedData = utils.formatRequestBodyDoc(parsedReq.data, indent);
+      if (!formattedData.changed) {
+        // toggle.
+        indent = !indent;
+        formattedData = utils.formatRequestBodyDoc(parsedReq.data, indent);
+      }
+      parsedReq.data = formattedData.data;
+
+      this.replaceRequestRange(parsedReq, reqRange);
+    }
+  }, 25);
+
+  // as name
+  update = async (data: string, reTokenizeAll = false) => {
+    return this.setValue(data, reTokenizeAll);
+  };
+
+  replaceRequestRange = (newRequest: any, requestRange: Range) => {
+    const text = utils.textFromRequest(newRequest);
+    if (requestRange) {
+      this.replaceRange(requestRange, text);
+    } else {
+      // just insert where we are
+      this.insert(this.getCurrentPosition(), text);
+    }
+  };
+  // get request range
+  getRequestRange = async (lineNumber?: number): Promise<Range | null> => {
+    await this.waitForLatestTokens();
+
+    if (this.parser.isInBetweenRequestsRow(lineNumber)) {
+      return null;
+    }
+
+    const reqStart = this.prevRequestStart(lineNumber);
+    const reqEnd = this.nextRequestEnd(reqStart);
+
+    return {
+      start: {
+        ...reqStart,
+      },
+      end: {
+        ...reqEnd,
+      },
+    };
+  };
+  // helper for getRequest. Parse range to single standard single request like {method, data, url, range}
+  getRequestInRange = async (range?: Range) => {
+    await this.waitForLatestTokens();
+    if (!range) {
+      return null;
+    }
+    const request: {
+      method: string;
+      data: string[];
+      url: string | null;
+      range: Range;
+    } = {
+      method: "",
+      data: [],
+      url: null,
+      range,
+    };
+
+    const pos = range.start;
+    const tokenIter = createTokenIterator({
+      editor: this,
+      position: pos,
+    });
+    let t = tokenIter.getCurrentToken();
+    if (this.parser.isEmptyToken(t)) {
+      // if the row starts with some spaces, skip them.
+      t = this.parser.nextNonEmptyToken(tokenIter);
+    }
+    if (t == null) {
+      return null;
+    }
+
+    request.method = t.value;
+    t = this.parser.nextNonEmptyToken(tokenIter);
+
+    if (!t || t.type === "method") {
+      return null;
+    }
+
+    request.url = "";
+
+    while (t && t.type && t.type.indexOf("url") === 0) {
+      request.url += t.value;
+      t = tokenIter.stepForward();
+    }
+    if (this.parser.isEmptyToken(t)) {
+      // if the url row ends with some spaces, skip them.
+      t = this.parser.nextNonEmptyToken(tokenIter);
+    }
+    let bodyStartLineNumber =
+      (t ? 0 : 1) + tokenIter.getCurrentPosition().lineNumber; // artificially increase end of docs.
+    let dataEndPos: Position;
+    while (
+      bodyStartLineNumber < range.end.lineNumber ||
+      (bodyStartLineNumber === range.end.lineNumber && 1 < range.end.column)
+    ) {
+      dataEndPos = this.nextDataDocEnd({
+        lineNumber: bodyStartLineNumber,
+        column: 1,
+      });
+      const bodyRange: Range = {
+        start: {
+          lineNumber: bodyStartLineNumber,
+          column: 1,
+        },
+        end: dataEndPos,
+      };
+      const data = this.getValueInRange(bodyRange)!;
+      request.data.push(data.trim());
+      bodyStartLineNumber = dataEndPos.lineNumber + 1;
+    }
+    return request;
+  };
+  // Parse range to standard requests like [{method, data, url, range},...]
+  getRequestsInRange = async (
+    range = this.getSelectionRange(),
+    includeNonRequestBlocks = false
+  ): Promise<any[]> => {
+    await this.waitForLatestTokens();
+    if (!range) {
+      return [];
+    }
+
+    const expandedRange = await this.expandRangeToRequestEdges(range);
+
+    if (!expandedRange) {
+      return [];
+    }
+
+    const requests: any = [];
+
+    let rangeStartCursor = expandedRange.start.lineNumber;
+    const endLineNumber = expandedRange.end.lineNumber;
+
+    // move to the next request start (during the second iterations this may not be exactly on a request
+    let currentLineNumber = expandedRange.start.lineNumber;
+
+    const flushNonRequestBlock = () => {
+      if (includeNonRequestBlocks) {
+        const nonRequestPrefixBlock = this.getLines(
+          rangeStartCursor,
+          currentLineNumber - 1
+        ).join("\n");
+        if (nonRequestPrefixBlock) {
+          requests.push(nonRequestPrefixBlock);
+        }
+      }
+    };
+
+    while (currentLineNumber <= endLineNumber) {
+      if (this.parser.isStartRequestRow(currentLineNumber)) {
+        flushNonRequestBlock();
+        const request = await this.getRequest(currentLineNumber);
+        if (!request) {
+          // Something has probably gone wrong.
+          return requests;
+        } else {
+          requests.push(request);
+          rangeStartCursor = currentLineNumber =
+            request.range.end.lineNumber + 1;
+        }
+      } else {
+        ++currentLineNumber;
+      }
+    }
+
+    flushNonRequestBlock();
+
+    return requests;
+  };
+  // Parse range to standard request like {method, data, url, range}
+  getRequest = async (row?: number) => {
+    await this.waitForLatestTokens();
+    if (this.parser.isInBetweenRequestsRow(row)) {
+      return null;
+    }
+    const range = await this.getRequestRange(row);
+    return this.getRequestInRange(range!);
+  };
+  // move to the start line
+  moveToPreviousRequestEdge = async () => {
+    await this.waitForLatestTokens();
+    const pos = this.getCurrentPosition();
+    for (
+      pos.lineNumber--;
+      pos.lineNumber > 1 && !this.parser.isRequestEdge(pos.lineNumber);
+      pos.lineNumber--
+    ) {
+      // loop for side effects
+    }
+    this.moveCursorToPosition({
+      lineNumber: pos.lineNumber,
+      column: 1,
+    });
+  };
+  // move to the end line
+  moveToNextRequestEdge = async (moveOnlyIfNotOnEdge: boolean) => {
+    await this.waitForLatestTokens();
+    const pos = this.getCurrentPosition();
+    const maxRow = this.getLineCount();
+    if (!moveOnlyIfNotOnEdge) {
+      pos.lineNumber++;
+    }
+    for (
+      ;
+      pos.lineNumber < maxRow && !this.parser.isRequestEdge(pos.lineNumber);
+      pos.lineNumber++
+    ) {
+      // loop for side effects
+    }
+    this.moveCursorToPosition({
+      lineNumber: pos.lineNumber,
+      column: 1,
+    });
+  };
+  // what relation with nextRequestStart??
+  nextRequestEnd = (pos: Position): Position => {
+    pos = pos || this.getCurrentPosition();
+    const maxLines = this.getLineCount();
+    let curLineNumber = pos.lineNumber;
+    for (; curLineNumber <= maxLines; ++curLineNumber) {
+      const curRowMode = this.parser.getRowParseMode(curLineNumber);
+      // eslint-disable-next-line no-bitwise
+      if ((curRowMode & this.parser.MODE.REQUEST_END) > 0) {
+        break;
+      }
+      // eslint-disable-next-line no-bitwise
+      if (
+        curLineNumber !== pos.lineNumber &&
+        (curRowMode & this.parser.MODE.REQUEST_START) > 0
+      ) {
+        break;
+      }
+    }
+
+    const column =
+      (this.getLineValue(curLineNumber) || "").replace(/\s+$/, "").length + 1;
+
+    return {
+      lineNumber: curLineNumber,
+      column,
+    };
+  };
+  // helper for getRequestInRange
+  nextDataDocEnd = (pos: Position): Position => {
+    pos = pos || this.getCurrentPosition();
+    let curLineNumber = pos.lineNumber;
+    const maxLines = this.getLineCount();
+    for (; curLineNumber < maxLines; curLineNumber++) {
+      const curRowMode = this.parser.getRowParseMode(curLineNumber);
+      // eslint-disable-next-line no-bitwise
+      if ((curRowMode & this.parser.MODE.REQUEST_END) > 0) {
+        break;
+      }
+      // eslint-disable-next-line no-bitwise
+      if ((curRowMode & this.parser.MODE.MULTI_DOC_CUR_DOC_END) > 0) {
+        break;
+      }
+      // eslint-disable-next-line no-bitwise
+      if (
+        curLineNumber !== pos.lineNumber &&
+        (curRowMode & this.parser.MODE.REQUEST_START) > 0
+      ) {
+        break;
+      }
+    }
+
+    const column =
+      (this.getLineValue(curLineNumber) || "").length +
+      1; /* Range goes to 1 after last char */
+
+    return {
+      lineNumber: curLineNumber,
+      column,
+    };
+  };
+  // get requests in curl string like [str,...]
+  getRequestsAsCURL = async (
+    elasticsearchBaseUrl: string,
+    range?: Range
+  ): Promise<string> => {
+    const requests = await this.getRequestsInRange(range, true);
+    const result = _.map(requests, (req) => {
+      if (typeof req === "string") {
+        // no request block
+        return req;
+      }
+
+      const esPath = req.url;
+      const esMethod = req.method;
+      const esData = req.data;
+
+      // this is the first url defined in elasticsearch.hosts
+      const url = constructESUrl(elasticsearchBaseUrl, esPath);
+
+      let ret = "curl -X" + esMethod + ' "' + url + '"';
+      if (esData && esData.length) {
+        ret += " -H 'Content-Type: application/json' -d'\n";
+        const dataAsString = collapseLiteralStrings(esData.join("\n"));
+
+        // We escape single quoted strings that that are wrapped in single quoted strings
+        ret += dataAsString.replace(/'/g, "'\\''");
+        if (esData.length > 1) {
+          ret += "\n";
+        } // end with a new line
+        ret += "'";
+      }
+      return ret;
+    });
+
+    return result.join("\n");
+  };
 }
