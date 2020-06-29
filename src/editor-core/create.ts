@@ -7,6 +7,6 @@ export const create = (el: HTMLElement) => {
   /**
    * Init the editor, but the source code is not good, refactor later.
    */
-  zillizEditor.highlightCurrentRequestsAndUpdateActionBar();
+  zillizEditor.highlightCurrentRequests();
   return zillizEditor;
 };

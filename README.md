@@ -20,4 +20,6 @@ there's a lot event listener in CoreEditor, and the callback should be registere
 - smart paste => format curl to json automatically
    - match curl paste
    - parse curl paste
+- autocomplete
+   - not done yet
 - split helper to one file

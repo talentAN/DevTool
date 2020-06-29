@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from "react";
 import clsx from "clsx";
 import { makeStyles } from "@material-ui/styles";
-import { PureBlackboard } from "../models/blackboard";
+import { PureBlackboard } from "../editor-core/blackboard";
 import * as ace from "brace";
 import "brace/mode/javascript";
 import "brace/theme/monokai";

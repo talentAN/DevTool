@@ -82,7 +82,7 @@ function Api(
       function (p) {
         // console.info("xxx", this);
         this.urlPatternMatcher.addEndpoint(p, copiedDescription);
-      }.bind(this), //FIXME:
+      }.bind(this),
       this
     );
     copiedDescription.paramsAutocomplete = new UrlParams(

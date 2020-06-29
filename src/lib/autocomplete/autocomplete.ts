@@ -104,7 +104,6 @@ export function getCurrentMethodAndTokenPaths(
     t && t.type.indexOf("url") === -1 && t.type !== "method";
     t = tokenIter.stepBackward()
   ) {
-    console.info("=> should not show this");
     if (t.type !== "whitespace") {
       walkedSomeBody = true;
     } // marks we saw something
@@ -212,7 +211,6 @@ export function getCurrentMethodAndTokenPaths(
     ) {
       // we are forcing the end of the url for the purposes of determining an endpoint
       if (forceEndOfUrl && t.type === "url.part") {
-        console.info("-> should not run here");
         ret.urlTokenPath.push(t.value);
         ret.urlTokenPath.push(URL_PATH_END_MARKER);
       }
@@ -314,16 +312,16 @@ export function getCurrentMethodAndTokenPaths(
   if (t && t.type === "method") {
     ret.method = t.value;
   }
-  console.info("=>ret is :", ret);
+  // console.info("=>ret is :", ret);
   return ret;
 }
 
 // eslint-disable-next-line
 export default function ({
-  coreEditor: editor,
+  editor,
   parser,
 }: {
-  coreEditor: CoreEditor;
+  editor: CoreEditor;
   parser: any;
 }) {
   function isUrlPathToken(token: Token | null) {
@@ -685,7 +683,7 @@ export default function ({
       lineNumber: context.rangeToReplace.start.lineNumber,
       column: context.rangeToReplace.start.column,
     };
-    console.info(`=> get ${context.autoCompleteType} auto complete`);
+    // console.info(`=> get ${context.autoCompleteType} auto complete`);
     switch (context.autoCompleteType) {
       case "path":
         addPathPrefixSuffixToContext(context);
@@ -848,7 +846,7 @@ export default function ({
     //   requestStartRow: 8,
     //   urlParamsTokenPath: null,
     //   urlTokenPath: [],
-    //   
+    //
     //   otherTokenValues?
     // }
     const ret = getCurrentMethodAndTokenPaths(editor, pos, parser);
@@ -1102,23 +1100,5 @@ export default function ({
   }
 
   editor.on("changeSelection", editorChangeListener);
-
-  return {
-    getCompletions,
-    // TODO: This needs to be cleaned up
-    _test: {
-      getCompletions: (
-        _editor: any,
-        _editSession: any,
-        pos: any,
-        prefix: any,
-        callback: any
-      ) => getCompletions(pos, prefix, callback),
-      addReplacementInfoToContext,
-      addChangeListener: () =>
-        editor.on("changeSelection", editorChangeListener),
-      removeChangeListener: () =>
-        editor.off("changeSelection", editorChangeListener),
-    },
-  };
+  return getCompletions;
 }

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { makeStyles } from "@material-ui/styles";
-import { create } from "../models";
+import { create } from "../editor-core";
 // is this necessary for us?
 // import { useUIAceKeyboardMode } from "../plugins/use_ui_ace_keyboard_mode";
 import * as CONSTS from "../consts";
@@ -10,41 +10,27 @@ import "./DevTool.scss";
 
 const inputId = "ConAppInputTextarea";
 const EditorID = `CoreEditor`;
-const useStyles = (params: any) => {
-  const { actionTop = 0 } = params;
-  return makeStyles({
-    root: {
-      position: "relative",
-      width: "50%",
-      top: `0 !important`,
-    },
-    actions: {
-      position: "absolute",
-      width: "100%",
-      height: "20px",
-      top: `${actionTop}px`,
-      right: `20px`,
-      zIndex: 100,
-      display: actionTop < 0 ? "none" : "flex",
-      alignItems: "center",
-      justifyContent: "flex-end",
-    },
-  })();
-};
+const useStyles = makeStyles({
+  root: {
+    position: "relative",
+    width: "50%",
+    top: `0 !important`,
+  },
+});
 
 const Editor = (props: any) => {
   const { requester, handleRes } = props;
   const editorRef = useRef<HTMLDivElement | null>(null);
   const editorInstanceRef: any = useRef(null);
   const [actionTop, setActionTop] = useState(0);
-  const classes = useStyles({ actionTop });
+  const classes = useStyles();
   // const [textArea, setTextArea] = useState<HTMLTextAreaElement | null>(null);
   // useUIAceKeyboardMode(textArea);
 
   useEffect(() => {
     // create a senseEditor
-    editorInstanceRef.current = create(editorRef.current!);
-    const editor = editorInstanceRef.current;
+    const editor = create(editorRef.current!);
+    editorInstanceRef.current = editor;
     const textareaElement = editorRef.current!.querySelector("textarea");
 
     if (textareaElement) {

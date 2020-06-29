@@ -1,5 +1,5 @@
-// brace is a very powerful eidtor base on ace while its api is also complex.
-// So we wrappe some apis which are frequently used, it'll be better for us to use it.
+// brace is a very powerful eidtor base on ace while its apis are also complex.
+// So we wrappe some apis which are frequently used, it'll be better for us to use them.
 
 // Those apis are basicly for get eidtor's status and content we need.
 // After get contents, we need to get standard request in json or curl format.
@@ -7,8 +7,8 @@
 
 import ace from "brace";
 import { Editor as IAceEditor, IEditSession as IAceEditSession } from "brace";
-import { collapseLiteralStrings } from "../lib/json_xjson_translation_tools";
 import _ from "lodash";
+import { collapseLiteralStrings } from "../lib/json_xjson_translation_tools";
 import {
   CoreEditor,
   Position,
@@ -20,29 +20,14 @@ import {
 } from "../types";
 import { AceTokensProvider } from "../lib/ace_token_provider";
 import { createTokenIterator } from "../lib/factories";
+import Autocomplete from "../lib/autocomplete/autocomplete";
+import * as utils from "../lib/utils";
 import * as curl from "../utils/helpers/Curl";
 import { smartResize } from "../utils/helpers/Editor";
 // @ts-ignore
-import * as InputMode from "./mode/input";
 import RowParser from "../utils/helpers/_RowParser";
-import Autocomplete from "../lib/autocomplete/autocomplete";
-import * as utils from "../lib/utils";
+import * as InputMode from "./mode/input";
 const _AceRange = ace.acequire("ace/range").Range;
-
-function constructESUrl(baseUri: string, path: string) {
-  baseUri = baseUri.replace(/\/+$/, "");
-  path = path.replace(/^\/+/, "");
-  return baseUri + "/" + path;
-}
-
-// brace line start with 1, we hope it start with 0 for better operation
-const rangeToAceRange = ({ start, end }: Range) =>
-  new _AceRange(
-    start.lineNumber - 1,
-    start.column - 1,
-    end.lineNumber - 1,
-    end.column - 1
-  );
 
 export class ZillizEditor implements CoreEditor {
   private _aceOnPaste: any;
@@ -53,7 +38,7 @@ export class ZillizEditor implements CoreEditor {
 
   constructor(private readonly editor: IAceEditor) {
     this.editor.setShowPrintMargin(false);
-    // init Editor style
+    // init Editor style, if we want support other style later, could move these in other file
     const session = this.editor.getSession();
     session.setMode(new InputMode.Mode() as any);
     (session as any).setFoldStyle("markbeginend");
@@ -78,17 +63,17 @@ export class ZillizEditor implements CoreEditor {
     this.currentReqRange = null;
     this.parser = new RowParser(this);
     this.autocomplete = new (Autocomplete as any)({
-      coreEditor: this,
+      editor: this,
       parser: this.parser,
     });
-    this.registerAutocompleter(this.autocomplete.getCompletions);
+    this.registerAutocompleter(this.autocomplete);
     this.on(
       "tokenizerUpdate",
-      this.highlightCurrentRequestsAndUpdateActionBar.bind(this)
+      this.highlightCurrentRequests.bind(this)
     );
     this.on(
       "changeCursor",
-      this.highlightCurrentRequestsAndUpdateActionBar.bind(this)
+      this.highlightCurrentRequests.bind(this)
     );
   }
 
@@ -124,7 +109,7 @@ export class ZillizEditor implements CoreEditor {
 
   // wrapper for brace
   getValueInRange(range: Range): string {
-    return this.editor.getSession().getTextRange(rangeToAceRange(range));
+    return this.editor.getSession().getTextRange(_rangeToAceRange(range));
   }
 
   getTokenProvider(): TokensProvider {
@@ -190,7 +175,7 @@ export class ZillizEditor implements CoreEditor {
 
   replace(range: Range, value: string): void {
     const session = this.editor.getSession();
-    session.replace(rangeToAceRange(range), value);
+    session.replace(_rangeToAceRange(range), value);
   }
 
   getLines(startLine: number, endLine: number): string[] {
@@ -200,7 +185,7 @@ export class ZillizEditor implements CoreEditor {
 
   replaceRange(range: Range, value: string) {
     const pos = this.editor.getCursorPosition();
-    this.editor.getSession().replace(rangeToAceRange(range), value);
+    this.editor.getSession().replace(_rangeToAceRange(range), value);
 
     const maxRow = Math.max(
       range.start.lineNumber - 1 + value.split("\n").length - 1,
@@ -236,7 +221,7 @@ export class ZillizEditor implements CoreEditor {
     return this.editor
       .getSession()
       .addMarker(
-        rangeToAceRange(range),
+        _rangeToAceRange(range),
         "ace_snippet-marker",
         "fullLine",
         false
@@ -376,8 +361,7 @@ export class ZillizEditor implements CoreEditor {
     ]);
   }
 
-  // coped from sense_editor
-  highlightCurrentRequestsAndUpdateActionBar = _.debounce(async () => {
+  highlightCurrentRequests = _.debounce(async () => {
     await this.waitForLatestTokens();
     const expandedRange = await this.expandRangeToRequestEdges();
     if (expandedRange === null && this.currentReqRange === null) {
@@ -402,6 +386,7 @@ export class ZillizEditor implements CoreEditor {
       this.currentReqRange.markerRef = this.addMarker(this.currentReqRange);
     }
   }, 25);
+
   // split valid requestes start and end line;
   expandRangeToRequestEdges = async (
     range = this.getSelectionRange()
@@ -811,7 +796,7 @@ export class ZillizEditor implements CoreEditor {
       const esData = req.data;
 
       // this is the first url defined in elasticsearch.hosts
-      const url = constructESUrl(elasticsearchBaseUrl, esPath);
+      const url = _constructESUrl(elasticsearchBaseUrl, esPath);
 
       let ret = "curl -X" + esMethod + ' "' + url + '"';
       if (esData && esData.length) {
@@ -830,4 +815,20 @@ export class ZillizEditor implements CoreEditor {
 
     return result.join("\n");
   };
+}
+
+function _constructESUrl(baseUri: string, path: string) {
+  baseUri = baseUri.replace(/\/+$/, "");
+  path = path.replace(/^\/+/, "");
+  return baseUri + "/" + path;
+}
+
+// brace line start with 1, we hope it start with 0 for better operation
+function _rangeToAceRange({ start, end }: Range) {
+  return new _AceRange(
+    start.lineNumber - 1,
+    start.column - 1,
+    end.lineNumber - 1,
+    end.column - 1
+  );
 }

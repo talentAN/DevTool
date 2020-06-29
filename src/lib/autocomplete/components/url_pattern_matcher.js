@@ -16,16 +16,16 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import _ from 'lodash';
+import _ from "lodash";
 import {
   SharedComponent,
   ConstantComponent,
   AcceptEndpointComponent,
   ListComponent,
   SimpleParamComponent,
-} from './index';
+} from "./index";
 
-import { FullRequestComponent } from './full_request_component';
+import { FullRequestComponent } from "./full_request_component";
 
 /**
  * @param parametrizedComponentFactories a dict of the following structure
@@ -43,9 +43,9 @@ export class UrlPatternMatcher {
     // We'll group endpoints by the methods which are attached to them,
     //to avoid suggesting endpoints that are incompatible with the
     //method that the user has entered.
-    ['HEAD', 'GET', 'PUT', 'POST', 'DELETE'].forEach((method) => {
+    ["HEAD", "GET", "PUT", "POST", "DELETE"].forEach((method) => {
       this[method] = {
-        rootComponent: new SharedComponent('ROOT'),
+        rootComponent: new SharedComponent("ROOT"),
         parametrizedComponentFactories: parametrizedComponentFactories || {
           getComponent: () => {},
         },
@@ -57,10 +57,14 @@ export class UrlPatternMatcher {
       let c;
       let activeComponent = this[method].rootComponent;
       if (endpoint.template) {
-        new FullRequestComponent(pattern + '[body]', activeComponent, endpoint.template);
+        new FullRequestComponent(
+          pattern + "[body]",
+          activeComponent,
+          endpoint.template
+        );
       }
       const endpointComponents = endpoint.url_components || {};
-      const partList = pattern.split('/');
+      const partList = pattern.split("/");
       // console.info('xxx', partList)
       _.each(
         partList,
@@ -78,7 +82,7 @@ export class UrlPatternMatcher {
               // endpoint specific. Support list
               if (Array.isArray(c)) {
                 c = new ListComponent(part, c, activeComponent);
-              } else if (_.isObject(c) && c.type === 'list') {
+              } else if (_.isObject(c) && c.type === "list") {
                 c = new ListComponent(
                   part,
                   c.list,
@@ -88,14 +92,18 @@ export class UrlPatternMatcher {
                 );
               } else {
                 console.warn(
-                  'incorrectly configured url component ',
+                  "incorrectly configured url component ",
                   part,
-                  ' in endpoint',
+                  " in endpoint",
                   endpoint
                 );
                 c = new SharedComponent(part);
               }
-            } else if ((c = this[method].parametrizedComponentFactories.getComponent(part))) {
+            } else if (
+              (c = this[method].parametrizedComponentFactories.getComponent(
+                part
+              ))
+            ) {
               // c is a f
               c = c(part, activeComponent);
             } else {
@@ -111,10 +119,10 @@ export class UrlPatternMatcher {
 
             for (partIndex++; partIndex < partList.length; partIndex++) {
               s = partList[partIndex];
-              if (s.indexOf('{') >= 0) {
+              if (s.indexOf("{") >= 0) {
                 break;
               }
-              lookAhead += '/' + s;
+              lookAhead += "/" + s;
             }
 
             if (activeComponent.getComponent(part)) {
@@ -126,7 +134,7 @@ export class UrlPatternMatcher {
               activeComponent = c;
             }
           }
-        }.bind(this), //FIXME:
+        }.bind(this),
         this
       );
       // mark end of endpoint path
