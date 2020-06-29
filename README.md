@@ -9,10 +9,12 @@ currentReqRange
 parser
 autocomplete
 
-
 ### what in CoreEditor
+
 there's a lot event listener in CoreEditor, and the callback should be registered when new SenseEditor
 
 ### Issue List
+
 - custom actions
-- 
+- smart resize => always keep current top line in view
+- smart paste => format curl to json automatically

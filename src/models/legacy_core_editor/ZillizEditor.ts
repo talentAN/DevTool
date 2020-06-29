@@ -1,6 +1,10 @@
-/**
- * note: brace is a very powerful eidtor base on ace while its api is also complex. So we wrappe some apis which are frequently used, it'll be better for us to use it.
- */
+// brace is a very powerful eidtor base on ace while its api is also complex.
+// So we wrappe some apis which are frequently used, it'll be better for us to use it.
+
+// Those apis are basicly for get eidtor's status and content we need.
+// After get contents, we need to get standard request in json or curl format.
+// So wo define other methods base on these wrappers to operat request
+
 import ace from "brace";
 import { Editor as IAceEditor, IEditSession as IAceEditSession } from "brace";
 import {
@@ -41,12 +45,13 @@ export class ZillizEditor implements CoreEditor {
     session.setTabSize(20);
     session.setUseWrapMode(true);
 
+    // Keep current top line in view when resizing to avoid losing user context
     this.resize = smartResize(this.editor);
 
     // We want it to be formatted to standard json automaticly when paste a curl string on editor.
     // So we intercept ace on paste handler.
     this._aceOnPaste = this.editor.onPaste;
-    this.editor.onPaste = this.DO_NOT_USE_onPaste.bind(this);
+    this.editor.onPaste = this._formatPaste.bind(this);
 
     this.editor.setOptions({
       enableBasicAutocompletion: true,
@@ -78,11 +83,13 @@ export class ZillizEditor implements CoreEditor {
       setTimeout(check, 0);
     });
   }
+
   // wrappers for Brace start
   getLineState(lineNumber: number) {
     const session = this.editor.getSession();
     return session.getState(lineNumber - 1);
   }
+
   // wrapper for brace
   getValueInRange(range: Range): string {
     return this.editor.getSession().getTextRange(rangeToAceRange(range));
@@ -92,6 +99,7 @@ export class ZillizEditor implements CoreEditor {
     return new AceTokensProvider(this.editor.getSession());
   }
 
+  // wrapper for brace
   getValue(): string {
     return this.editor.getValue();
   }
@@ -258,7 +266,7 @@ export class ZillizEditor implements CoreEditor {
 
   // eslint-disable-next-line @typescript-eslint/camelcase
   // if we past a curl string, it will be parsed to JSON automaticly, if we don't want this function, just rm code in if
-  private DO_NOT_USE_onPaste(text: string) {
+  private _formatPaste(text: string) {
     if (text && curl.detectCURL(text)) {
       const curlInput = curl.parseCURL(text);
       this.editor.insert(curlInput);
@@ -294,7 +302,6 @@ export class ZillizEditor implements CoreEditor {
 
   registerAutocompleter(autocompleter: AutoCompleterFunction): void {
     // Hook into Ace
-
     // disable standard context based autocompletion.
     // @ts-ignore
     ace.define(

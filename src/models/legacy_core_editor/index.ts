@@ -17,12 +17,12 @@
  * under the License.
  */
 
-import 'brace';
-import 'brace/ext/language_tools';
-import 'brace/ext/searchbox';
-import 'brace/mode/json';
-import 'brace/mode/text';
+import "brace";
+import "brace/ext/language_tools";
+import "brace/ext/searchbox";
+import "brace/mode/json";
+import "brace/mode/text";
 
-export * from './legacy_core_editor';
-export * from './create_readonly';
-export * from './create';
+export * from "./ZillizEditor";
+export * from "./create_readonly";
+export * from "./create";

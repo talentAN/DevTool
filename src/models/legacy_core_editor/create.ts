@@ -1,5 +1,5 @@
 import ace from "brace";
-import { ZillizEditor } from "./legacy_core_editor";
+import { ZillizEditor } from "./ZillizEditor";
 
 export const create = (el: HTMLElement) => {
   const aceEditor = ace.edit(el);
