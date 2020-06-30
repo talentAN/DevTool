@@ -17,9 +17,10 @@ const useStyles = (params: any) => {
       display: top < 0 ? "none" : "flex",
       alignItems: "center",
       justifyContent: "flex-end",
-    },
-    noEvent: {
       pointerEvents: "none",
+    },
+    enableEvent: {
+      pointerEvents: "auto",
     },
   })();
 };
@@ -34,8 +35,7 @@ const Actions = (props: any) => {
   const { top, editor, requester, handleRes } = props;
   const classes = useStyles({ top });
   const getSession = async (e: any) => {
-    editor &&
-      console.info(editor.getCoreEditor().editor.getSession().getState(2));
+    editor && console.info(editor.editor.getSession().getState(2));
   };
   const getRequests = async (e: any) => {
     editor &&
@@ -47,10 +47,18 @@ const Actions = (props: any) => {
   };
   return (
     <div className={classes.actions}>
-      <IconButton size="small" onClick={getSession}>
+      <IconButton
+        size="small"
+        onClick={getSession}
+        classes={{ root: classes.enableEvent }}
+      >
         <DeleteIcon fontSize="small" />
       </IconButton>
-      <IconButton size="small" onClick={getRequests}>
+      <IconButton
+        size="small"
+        onClick={getRequests}
+        classes={{ root: classes.enableEvent }}
+      >
         <ArrowRightIcon fontSize="small" />
       </IconButton>
     </div>

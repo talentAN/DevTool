@@ -83,12 +83,11 @@ export class UrlPatternMatcher {
             }
             // a new path, resolve.
             if ((c = endpointComponents[part])) {
-              console.info("xxx", Array.isArray(c));
+              // console.info("xxx", Array.isArray(c));
               // endpoint specific. Support list
               c = Array.isArray(c)
                 ? new ListComponent(part, c, activeComponent)
                 : new SharedComponent(part);
-              debugger;
             } else if (
               (c = this[method].parametrizedComponentFactories.getComponent(
                 part
