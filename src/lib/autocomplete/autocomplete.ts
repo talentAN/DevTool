@@ -843,7 +843,6 @@ export default function ({
     context.urlTokenPath = ret.urlTokenPath;
     // autoComplets to use
     const components = getTopLevelUrlCompleteComponents(context.method);
-    console.info(components);
     // what this method for
     populateContext(ret.urlTokenPath, context, editor, true, components);
     // before run next, the context.autoCompleteSet shoud be a valid array.

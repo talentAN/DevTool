@@ -102,9 +102,8 @@ export function getEndpointBodyCompleteComponents(endpoint) {
   }
   return desc.bodyAutocompleteRootComponents;
 }
-
+//TODO:
 export function getTopLevelUrlCompleteComponents(method) {
-  // debugger;
   return ACTIVE_API.getTopLevelUrlCompleteComponents(method);
 }
 
@@ -127,9 +126,11 @@ function loadApisFromJson(
   const names = [];
   _.each(json, function (apiJson, name) {
     names.unshift(name);
-    _.each(apiJson.globals || {}, function (globalJson, globalName) {
-      api.addGlobalAutocompleteRules(globalName, globalJson);
-    });
+    // FIXME: global autocomplete seem useless for us, pay attention to this later;
+    // _.each(apiJson.globals || {}, function (globalJson, globalName) {
+    //   console.info("xxx", globalName, globalJson);
+    //   api.addGlobalAutocompleteRules(globalName, globalJson);
+    // });
     _.each(apiJson.endpoints || {}, function (endpointJson, endpointName) {
       api.addEndpointDescription(endpointName, endpointJson);
     });
@@ -137,5 +138,5 @@ function loadApisFromJson(
   api.name = names.join(",");
   return api;
 }
-
+// add autocomplete components to apis
 ACTIVE_API = loadApisFromJson(API_Endpoints);

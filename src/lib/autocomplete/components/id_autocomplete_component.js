@@ -17,8 +17,8 @@
  * under the License.
  */
 
-import _ from 'lodash';
-import { SharedComponent } from './shared_component';
+import _ from "lodash";
+import { SharedComponent } from "./shared_component";
 export class IdAutocompleteComponent extends SharedComponent {
   constructor(name, parent, multi) {
     super(name, parent);

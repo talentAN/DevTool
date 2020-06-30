@@ -18,7 +18,7 @@
  */
 
 import _ from 'lodash';
-import { SharedComponent } from './shared_component';
+import { SharedComponent } from '.';
 /** A component that suggests one of the give options, but accepts anything */
 export class ListComponent extends SharedComponent {
   constructor(name, list, parent, multiValued, allowNonValidValues) {

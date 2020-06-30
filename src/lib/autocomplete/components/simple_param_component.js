@@ -17,11 +17,8 @@
  * under the License.
  */
 
-import { SharedComponent } from './shared_component';
+import { SharedComponent } from "./shared_component";
 export class SimpleParamComponent extends SharedComponent {
-  constructor(name, parent) {
-    super(name, parent);
-  }
   match(token, context, editor) {
     const result = super.match(token, context, editor);
     result.context_values = result.context_values || {};

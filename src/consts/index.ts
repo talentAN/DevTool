@@ -64,3 +64,5 @@ PUT delete
   }
 }
 `;
+
+export const METHODS = ["HEAD", "GET", "PUT", "POST", "DELETE"];

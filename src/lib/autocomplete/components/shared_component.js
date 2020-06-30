@@ -28,7 +28,7 @@ export class SharedComponent extends AutocompleteComponent {
   }
   /* return the first component with a given name */
   getComponent(name) {
-    return (this._nextDict[name] || [undefined])[0];
+    return this._nextDict[name] && this._nextDict[name][0];
   }
 
   addComponent(component) {

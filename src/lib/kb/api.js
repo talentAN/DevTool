@@ -68,22 +68,21 @@ function Api(
     return result;
   };
 
-  cls.addEndpointDescription = function (endpoint, description) {
+  cls.addEndpointDescription = function (endpoint, description = {}) {
+    // endpoint is the kEY of endpoints;
+    // description is endpoints[KEY]
     const copiedDescription = {};
-    _.extend(copiedDescription, description || {});
+    _.extend(copiedDescription, description);
+    // Add default in case code break down here.
     _.defaults(copiedDescription, {
       id: endpoint,
       patterns: [endpoint],
       methods: ["GET"],
     });
-    // console.info("yyy", this, _);
-    _.each(
-      copiedDescription.patterns,
+    copiedDescription.patterns.forEach(
       function (p) {
-        // console.info("xxx", this);
         this.urlPatternMatcher.addEndpoint(p, copiedDescription);
-      }.bind(this),
-      this
+      }.bind(this)
     );
     copiedDescription.paramsAutocomplete = new UrlParams(
       copiedDescription.url_params
@@ -100,7 +99,7 @@ function Api(
   cls.getEndpointDescriptionByEndpoint = function (endpoint) {
     return this.endpoints[endpoint];
   };
-
+  //TODO:
   cls.getTopLevelUrlCompleteComponents = function (method) {
     return this.urlPatternMatcher.getTopLevelComponents(method);
   };

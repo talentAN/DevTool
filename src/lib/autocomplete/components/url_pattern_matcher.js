@@ -16,7 +16,6 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import _ from "lodash";
 import {
   SharedComponent,
   ConstantComponent,
@@ -24,7 +23,7 @@ import {
   ListComponent,
   SimpleParamComponent,
 } from "./index";
-
+import { METHODS } from "../../../consts";
 import { FullRequestComponent } from "./full_request_component";
 
 /**
@@ -43,7 +42,7 @@ export class UrlPatternMatcher {
     // We'll group endpoints by the methods which are attached to them,
     //to avoid suggesting endpoints that are incompatible with the
     //method that the user has entered.
-    ["HEAD", "GET", "PUT", "POST", "DELETE"].forEach((method) => {
+    METHODS.forEach((method) => {
       this[method] = {
         rootComponent: new SharedComponent("ROOT"),
         parametrizedComponentFactories: parametrizedComponentFactories || {
@@ -53,10 +52,15 @@ export class UrlPatternMatcher {
     });
   }
   addEndpoint(pattern, endpoint) {
+    // the parttern is endpoints[key].patterns's items
+    // endpoint is endpoints[key]
     endpoint.methods.forEach((method) => {
+      // c is a temp value which will be assignment to activeComponent
       let c;
       let activeComponent = this[method].rootComponent;
+      // FIXME: what if template and what it for? Useless for us at the moment Check this later
       if (endpoint.template) {
+        console.info("666");
         new FullRequestComponent(
           pattern + "[body]",
           activeComponent,
@@ -65,58 +69,45 @@ export class UrlPatternMatcher {
       }
       const endpointComponents = endpoint.url_components || {};
       const partList = pattern.split("/");
-      // console.info('xxx', partList)
-      _.each(
-        partList,
+      partList.forEach(
         function (part, partIndex) {
+          // 有{}括起来的部分
           if (part.search(/^{.+}$/) >= 0) {
+            // delete '{' and '}', get content inside
             part = part.substr(1, part.length - 2);
-            if (activeComponent.getComponent(part)) {
-              // we already have something for this, reuse
-              activeComponent = activeComponent.getComponent(part);
+            const target = activeComponent.getComponent(part);
+            // we already have something for this, reuse
+            if (target) {
+              activeComponent = target;
               return;
             }
             // a new path, resolve.
-
             if ((c = endpointComponents[part])) {
+              console.info("xxx", Array.isArray(c));
               // endpoint specific. Support list
-              if (Array.isArray(c)) {
-                c = new ListComponent(part, c, activeComponent);
-              } else if (_.isObject(c) && c.type === "list") {
-                c = new ListComponent(
-                  part,
-                  c.list,
-                  activeComponent,
-                  c.multiValued,
-                  c.allow_non_valid
-                );
-              } else {
-                console.warn(
-                  "incorrectly configured url component ",
-                  part,
-                  " in endpoint",
-                  endpoint
-                );
-                c = new SharedComponent(part);
-              }
+              c = Array.isArray(c)
+                ? new ListComponent(part, c, activeComponent)
+                : new SharedComponent(part);
+              debugger;
             } else if (
               (c = this[method].parametrizedComponentFactories.getComponent(
                 part
               ))
             ) {
-              // c is a f
+              // c is a function
+              console.info("yyy");
               c = c(part, activeComponent);
             } else {
+              console.info("zzz");
               // just accept whatever with not suggestions
               c = new SimpleParamComponent(part, activeComponent);
             }
-
             activeComponent = c;
+            // ----------------- first if end ------------------------
           } else {
-            // not pattern
+            // 当前lookAhead是纯字符串. 如果后面有{}, 跳出循环, 如果没有就拼接上, lookAhead最终是不包含{}的纯字符串
             let lookAhead = part;
             let s;
-
             for (partIndex++; partIndex < partList.length; partIndex++) {
               s = partList[partIndex];
               if (s.indexOf("{") >= 0) {
@@ -134,19 +125,19 @@ export class UrlPatternMatcher {
               activeComponent = c;
             }
           }
-        }.bind(this),
-        this
+        }.bind(this)
       );
       // mark end of endpoint path
       new AcceptEndpointComponent(endpoint, activeComponent);
     });
   }
-
+  // TODO:
   getTopLevelComponents = function (method) {
     const methodRoot = this[method];
     if (!methodRoot) {
       return [];
     }
+    // console.info("xxx", methodRoot.rootComponent.next);
     return methodRoot.rootComponent.next;
   };
 }
