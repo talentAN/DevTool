@@ -34,7 +34,7 @@ export class IdAutocompleteComponent extends SharedComponent {
     token = Array.isArray(token) ? token : [token];
     if (
       _.find(token, function (t) {
-        return t.match(/[\/,]/);
+        return t.match(/[/,]/);
       })
     ) {
       return null;

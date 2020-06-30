@@ -17,6 +17,8 @@ const useStyles = (params: any) => {
       display: top < 0 ? "none" : "flex",
       alignItems: "center",
       justifyContent: "flex-end",
+    },
+    noEvent: {
       pointerEvents: "none",
     },
   })();

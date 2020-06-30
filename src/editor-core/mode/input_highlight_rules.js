@@ -72,13 +72,13 @@ export function InputHighlightRules() {
     method_sep: mergeTokens(
       addEOL(
         ["whitespace", "url.protocol_host", "url.slash"],
-        /(\s+)(https?:\/\/[^?\/,]+)(\/)/,
+        /(\s+)(https?:\/\/[^?/,]+)(\/)/,
         "start",
         "url"
       ),
       addEOL(
         ["whitespace", "url.protocol_host"],
-        /(\s+)(https?:\/\/[^?\/,]+)/,
+        /(\s+)(https?:\/\/[^?/,]+)/,
         "start",
         "url"
       ),
@@ -87,7 +87,7 @@ export function InputHighlightRules() {
     ),
     url: mergeTokens(
       addEOL(["url.part"], /(_sql)/, "start-sql", "url-sql"),
-      addEOL(["url.part"], /([^?\/,\s]+)/, "start"),
+      addEOL(["url.part"], /([^?/,\s]+)/, "start"),
       addEOL(["url.comma"], /(,)/, "start"),
       addEOL(["url.slash"], /(\/)/, "start"),
       addEOL(["url.questionmark"], /(\?)/, "start", "urlParams")
@@ -102,7 +102,7 @@ export function InputHighlightRules() {
       addEOL(["url.amp"], /(&)/, "start")
     ),
     "url-sql": mergeTokens(
-      addEOL(["url.part"], /([^?\/,\s]+)/, "start-sql"),
+      addEOL(["url.part"], /([^?/,\s]+)/, "start-sql"),
       addEOL(["url.comma"], /(,)/, "start-sql"),
       addEOL(["url.slash"], /(\/)/, "start-sql"),
       addEOL(["url.questionmark"], /(\?)/, "start-sql", "urlParams-sql")

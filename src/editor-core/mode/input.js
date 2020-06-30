@@ -58,7 +58,7 @@ oop.inherits(Mode, TextMode);
     let indent = this.$getIndent(line);
 
     if (state !== "string_literal") {
-      const match = line.match(/^.*[\{\(\[]\s*$/);
+      const match = line.match(/^.*[{([]\s*$/);
       if (match) {
         indent += tab;
       }

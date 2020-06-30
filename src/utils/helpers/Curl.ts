@@ -56,8 +56,8 @@ export function parseCURL(text: string) {
   const CurlVerb = /-X ?(GET|HEAD|POST|PUT|DELETE)/;
 
   const HasProtocol = /[\s"']https?:\/\//;
-  const CurlRequestWithProto = /[\s"']https?:\/\/[^\/ ]+\/+([^\s"']+)/;
-  const CurlRequestWithoutProto = /[\s"'][^\/ ]+\/+([^\s"']+)/;
+  const CurlRequestWithProto = /[\s"']https?:\/\/[^/ ]+\/+([^\s"']+)/;
+  const CurlRequestWithoutProto = /[\s"'][^/ ]+\/+([^\s"']+)/;
   const CurlData = /^.+\s(--data|-d)\s*/;
   const SenseLine = /^\s*(GET|HEAD|POST|PUT|DELETE)\s+\/?(.+)/;
 
