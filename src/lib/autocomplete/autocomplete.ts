@@ -479,8 +479,7 @@ export default function ({
       activeScheme: null,
       editor: ctxEditor,
     };
-    context.autoCompleteType = getAutoCompleteType(pos);
-    // console.info(`==> add ${context.autoCompleteType} auto complete`);
+    context.autoCompleteType = _getAutoCompleteType(pos);
     switch (context.autoCompleteType) {
       case "path":
         _addPathAutoCompleteSetToContext(context, pos);
@@ -497,7 +496,7 @@ export default function ({
       default:
         return null;
     }
-    // here should have no empty context.autoCompleteSet
+    // here context.autoCompleteSet should be no empty array
     if (!context.autoCompleteSet) {
       return null; // nothing to do..
     }
@@ -511,7 +510,7 @@ export default function ({
   /**
    * return "method", "path" or "body" to determine auto complete type.
    */
-  function getAutoCompleteType(pos: Position): string | null {
+  function _getAutoCompleteType(pos: Position): string | null {
     let rowMode = parser.getRowParseMode();
 
     // eslint-disable-next-line no-bitwise
@@ -826,7 +825,7 @@ export default function ({
       })
     );
   }
-  // main function to get path autocomplete
+  // main function to get path autocompletes
   function _addPathAutoCompleteSetToContext(context: any, pos: Position) {
     // here ret is
     //  {
@@ -844,7 +843,7 @@ export default function ({
     context.urlTokenPath = ret.urlTokenPath;
     // autoComplets to use
     const components = getTopLevelUrlCompleteComponents(context.method);
-    console.info(components)
+    console.info(components);
     // what this method for
     populateContext(ret.urlTokenPath, context, editor, true, components);
     // before run next, the context.autoCompleteSet shoud be a valid array.
@@ -1023,6 +1022,7 @@ export default function ({
         callback(null, []);
       } else {
         const terms: any[] = [];
+        // filter null terms and normalize term
         context.autoCompleteSet.forEach((term: any) => {
           if (!!term && term.name != null) {
             if (typeof term !== "object") {

@@ -16,8 +16,8 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import _ from 'lodash';
-import { AutocompleteComponent } from './autocomplete_component';
+import _ from "lodash";
+import { AutocompleteComponent } from ".";
 export class SharedComponent extends AutocompleteComponent {
   constructor(name, parent) {
     super(name);
@@ -25,8 +25,6 @@ export class SharedComponent extends AutocompleteComponent {
     if (parent) {
       parent.addComponent(this);
     }
-    // for debugging purposes
-    this._parent = parent;
   }
   /* return the first component with a given name */
   getComponent(name) {
@@ -34,9 +32,8 @@ export class SharedComponent extends AutocompleteComponent {
   }
 
   addComponent(component) {
-    const current = this._nextDict[component.name] || [];
-    current.push(component);
-    this._nextDict[component.name] = current;
+    this._nextDict[component.name] = this._nextDict[component.name] || [];
+    this._nextDict[component.name].push(component);
     this.next = [].concat.apply([], _.values(this._nextDict));
   }
 }

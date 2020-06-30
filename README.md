@@ -25,3 +25,6 @@ there's a lot event listener in CoreEditor, and the callback should be registere
 - highlight current requests
    - not done yet 
 
+
+- why autocomplete seperate to so many component
+  - what's the difference and common

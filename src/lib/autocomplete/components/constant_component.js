@@ -17,12 +17,11 @@
  * under the License.
  */
 
-import _ from 'lodash';
-import { SharedComponent } from './shared_component';
+import { SharedComponent } from "./shared_component";
 export class ConstantComponent extends SharedComponent {
   constructor(name, parent, options) {
     super(name, parent);
-    if (_.isString(options)) {
+    if (!Array.isArray(options)) {
       options = [options];
     }
     this.options = options || [name];
@@ -36,14 +35,13 @@ export class ConstantComponent extends SharedComponent {
       options = [options];
     }
 
-    [].push.apply(this.options, options);
-    this.options = _.uniq(this.options);
+    this.options.push(options);
+    this.options = Array.from(new Set(this.options));
   }
   match(token, context, editor) {
     if (token !== this.name) {
       return null;
     }
-
     return super.match(token, context, editor);
   }
 }
