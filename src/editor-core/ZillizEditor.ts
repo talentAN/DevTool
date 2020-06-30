@@ -41,7 +41,7 @@ export class ZillizEditor implements CoreEditor {
     const session = this.editor.getSession();
     session.setMode(new InputMode.Mode() as any);
     (session as any).setFoldStyle("markbeginend");
-    session.setTabSize(20);
+    session.setTabSize(2);
     session.setUseWrapMode(true);
 
     // Keep current top line in view when resizing to avoid losing user context
@@ -66,14 +66,8 @@ export class ZillizEditor implements CoreEditor {
       parser: this.parser,
     });
     this.registerAutocompleter(this.autocomplete);
-    this.on(
-      "tokenizerUpdate",
-      this.highlightCurrentRequests.bind(this)
-    );
-    this.on(
-      "changeCursor",
-      this.highlightCurrentRequests.bind(this)
-    );
+    this.on("tokenizerUpdate", this.highlightCurrentRequests.bind(this));
+    this.on("changeCursor", this.highlightCurrentRequests.bind(this));
   }
 
   // dirty check for tokenizer state, uses a lot less cycles than listening for tokenizerUpdate
@@ -340,9 +334,8 @@ export class ZillizEditor implements CoreEditor {
 
     langTools.setCompleters([
       {
-        identifierRegexps: [
-          /[a-zA-Z_0-9\.\$\-\u00A2-\uFFFF]/, // adds support for dot character
-        ],
+        // eslint-disable-next-line
+        identifierRegexps: [/[a-zA-Z_0-9\.\$\-\u00A2-\uFFFF]/],
         getCompletions: (
           DO_NOT_USE_1: IAceEditor,
           DO_NOT_USE_2: IAceEditSession,
@@ -508,7 +501,7 @@ export class ZillizEditor implements CoreEditor {
     }
   }, 25);
 
-  // as name
+  // set content
   update = async (data: string, reTokenizeAll = false) => {
     return this.setValue(data, reTokenizeAll);
   };

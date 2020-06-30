@@ -479,25 +479,17 @@ export default function ({
       activeScheme: null,
       editor: ctxEditor,
     };
-
-    //  context.updatedForToken = session.getTokenAt(pos.row, pos.column);
-    //
-    //  if (!context.updatedForToken)
-    //    context.updatedForToken = { value: "", start: pos.column }; // empty line
-    //
-    //  context.updatedForToken.row = pos.row; // extend
-    // console.info("xxx", context);
     context.autoCompleteType = getAutoCompleteType(pos);
     // console.info(`==> add ${context.autoCompleteType} auto complete`);
     switch (context.autoCompleteType) {
       case "path":
-        addPathAutoCompleteSetToContext(context, pos);
+        _addPathAutoCompleteSetToContext(context, pos);
         break;
       case "url_params":
         addUrlParamsAutoCompleteSetToContext(context, pos);
         break;
       case "method":
-        addMethodAutoCompleteSetToContext(context);
+        _addMethodAutoCompleteSetToContext(context);
         break;
       case "body":
         addBodyAutoCompleteSetToContext(context, pos);
@@ -505,7 +497,6 @@ export default function ({
       default:
         return null;
     }
-    // console.info("zzz", context.autoCompleteSet);
     // here should have no empty context.autoCompleteSet
     if (!context.autoCompleteSet) {
       return null; // nothing to do..
@@ -517,10 +508,10 @@ export default function ({
 
     return context;
   }
-
-  function getAutoCompleteType(pos: Position) {
-    // return "method", "path" or "body" to determine auto complete type.
-
+  /**
+   * return "method", "path" or "body" to determine auto complete type.
+   */
+  function getAutoCompleteType(pos: Position): string | null {
     let rowMode = parser.getRowParseMode();
 
     // eslint-disable-next-line no-bitwise
@@ -549,7 +540,6 @@ export default function ({
             case "method":
               // we moved one back
               return "path";
-              break;
             default:
               if (isUrlPathToken(t)) {
                 return "path";
@@ -559,7 +549,6 @@ export default function ({
               }
               return null;
           }
-          break;
         default:
           if (isUrlPathToken(t)) {
             return "path";
@@ -828,7 +817,7 @@ export default function ({
     context.suffixToAdd = "";
   }
 
-  function addMethodAutoCompleteSetToContext(context: any) {
+  function _addMethodAutoCompleteSetToContext(context: any) {
     context.autoCompleteSet = ["GET", "PUT", "POST", "DELETE", "HEAD"].map(
       (m, i) => ({
         name: m,
@@ -838,28 +827,27 @@ export default function ({
     );
   }
   // main function to get path autocomplete
-  function addPathAutoCompleteSetToContext(context: any, pos: Position) {
-    // ret is
+  function _addPathAutoCompleteSetToContext(context: any, pos: Position) {
+    // here ret is
     //  {
     //   bodyTokenPath: null,
     //   method: "POST",
     //   requestStartRow: 8,
     //   urlParamsTokenPath: null,
     //   urlTokenPath: [],
-    //
-    //   otherTokenValues?
     // }
     const ret = getCurrentMethodAndTokenPaths(editor, pos, parser);
+    // console.info("xxx", ret);
     context.method = ret.method;
     context.token = ret.token;
     context.otherTokenValues = ret.otherTokenValues;
     context.urlTokenPath = ret.urlTokenPath;
-    // autoCompoles to use
+    // autoComplets to use
     const components = getTopLevelUrlCompleteComponents(context.method);
+    console.info(components)
     // what this method for
     populateContext(ret.urlTokenPath, context, editor, true, components);
     // before run next, the context.autoCompleteSet shoud be a valid array.
-    // console.info("=> final: ", context.autoCompleteSet);
     context.autoCompleteSet = addMetaToTermsList(
       context.autoCompleteSet,
       "endpoint"
@@ -953,7 +941,6 @@ export default function ({
   const evaluateCurrentTokenAfterAChange = _.debounce(
     function evaluateCurrentTokenAfterAChange(pos: Position) {
       let currentToken = editor.getTokenAt(pos)!;
-
       if (!currentToken) {
         if (pos.lineNumber === 1) {
           lastEvaluatedToken = null;
@@ -965,7 +952,7 @@ export default function ({
           type: "",
         }; // empty row
       }
-
+      // console.info(currentToken)
       currentToken.position.lineNumber = pos.lineNumber; // extend token with row. Ace doesn't supply it by default
       if (parser.isEmptyToken(currentToken)) {
         // empty token. check what's coming next
@@ -1023,6 +1010,7 @@ export default function ({
     }
   }
 
+  // TODO: why useless prefix in this
   function getCompletions(
     position: Position,
     prefix: string,
@@ -1030,21 +1018,19 @@ export default function ({
   ) {
     try {
       const context = getAutoCompleteContext(editor, position);
-      // if you wanna show autocomplete here, the context.autoCompleteSet should be like => [{name:'aaa', score:1, meta:'bbb'}];
+      // if you wanna show autocomplete here, the context.autoCompleteSet should not be empty;
       if (!context) {
         callback(null, []);
       } else {
-        const terms = _.map(
-          context.autoCompleteSet.filter(
-            (term: any) => Boolean(term) && term.name != null
-          ),
-          function (term: any) {
+        const terms: any[] = [];
+        context.autoCompleteSet.forEach((term: any) => {
+          if (!!term && term.name != null) {
             if (typeof term !== "object") {
               term = {
                 name: term,
               };
             } else {
-              term = _.clone(term);
+              term = Object.assign({}, term);
             }
             const defaults: any = {
               value: term.name,
@@ -1060,31 +1046,23 @@ export default function ({
                 },
               };
             }
-            return _.defaults(term, defaults);
+            terms.push(_.defaults(term, defaults));
           }
-        );
-
+        });
         terms.sort(function (t1: any, t2: any) {
           /* score sorts from high to low */
-          if (t1.score > t2.score) {
-            return -1;
-          }
-          if (t1.score < t2.score) {
-            return 1;
+          if (t1.score !== t2.score) {
+            return t1.score < t2.score ? 1 : -1;
           }
           /* names sort from low to high */
-          if (t1.name < t2.name) {
-            return -1;
-          }
-          if (t1.name === t2.name) {
-            return 0;
+          if (t1.name <= t2.name) {
+            return t1.name === t2.name ? 0 : -1;
           }
           return 1;
         });
-
         callback(
           null,
-          _.map(terms, function (t: any, i: any) {
+          terms.map(function (t: any, i: any) {
             t.insertValue = t.insertValue || t.value;
             t.value = "" + t.value; // normalize to strings
             t.score = -i;

@@ -1,18 +1,20 @@
-
-export const DEFAULT_INPUT_VALUE = 
-`GET _search
+export const DEFAULT_INPUT_VALUE = `GET _search
 {
   "query": {
     "match_all": {}
   }
 }
 
-POST _add
+POST _aliases
 {
-  "a": {
-    "b": false,
-    "c": {}
-  }
+  "actions": [
+    {
+      "add": {
+        "index": "test1",
+        "alias": "alias1"
+      }
+    }
+  ]
 }
 
 POST _add

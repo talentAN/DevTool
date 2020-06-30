@@ -17,15 +17,19 @@
  * under the License.
  */
 
-import _ from 'lodash';
-import { WalkingState, walkTokenPath, wrapComponentWithDefaults } from './engine';
+import _ from "lodash";
+import {
+  WalkingState,
+  walkTokenPath,
+  wrapComponentWithDefaults,
+} from "./engine";
 import {
   ConstantComponent,
   SharedComponent,
   ObjectComponent,
   ConditionalProxy,
   GlobalOnlyComponent,
-} from './components';
+} from "./components";
 
 function CompilingContext(endpointId, parametrizedComponentFactories) {
   this.parametrizedComponentFactories = parametrizedComponentFactories;
@@ -47,20 +51,20 @@ function CompilingContext(endpointId, parametrizedComponentFactories) {
 function resolvePathToComponents(tokenPath, context, editor, components) {
   const walkStates = walkTokenPath(
     tokenPath,
-    [new WalkingState('ROOT', components, [])],
+    [new WalkingState("ROOT", components, [])],
     context,
     editor
   );
-  const result = [].concat.apply([], _.pluck(walkStates, 'components'));
+  const result = [].concat.apply([], _.pluck(walkStates, "components"));
   return result;
 }
 
 class ScopeResolver extends SharedComponent {
   constructor(link, compilingContext) {
-    super('__scope_link');
-    if (_.isString(link) && link[0] === '.') {
+    super("__scope_link");
+    if (_.isString(link) && link[0] === ".") {
       // relative link, inject current endpoint
-      if (link === '.') {
+      if (link === ".") {
         link = compilingContext.endpointId;
       } else {
         link = compilingContext.endpointId + link;
@@ -76,17 +80,17 @@ class ScopeResolver extends SharedComponent {
       return compileDescription(desc, this.compilingContext);
     }
     if (!_.isString(this.link)) {
-      throw new Error('unsupported link format', this.link);
+      throw new Error("unsupported link format", this.link);
     }
 
-    let path = this.link.replace(/\./g, '{').split(/(\{)/);
+    let path = this.link.replace(/\./g, "{").split(/(\{)/);
     const endpoint = path[0];
     let components;
     try {
-      if (endpoint === 'GLOBAL') {
+      if (endpoint === "GLOBAL") {
         // global rules need an extra indirection
         if (path.length < 3) {
-          throw new Error('missing term in global link: ' + this.link);
+          throw new Error("missing term in global link: " + this.link);
         }
         const term = path[2];
         components = context.globalComponentResolver(term);
@@ -96,7 +100,7 @@ class ScopeResolver extends SharedComponent {
         components = context.endpointComponentResolver(endpoint);
       }
     } catch (e) {
-      throw new Error('failed to resolve link [' + this.link + ']: ' + e);
+      throw new Error("failed to resolve link [" + this.link + "]: " + e);
     }
     return resolvePathToComponents(path, context, editor, components);
   }
@@ -213,7 +217,10 @@ function compileDescription(description, compilingContext) {
 
 function compileParametrizedValue(value, compilingContext, template) {
   value = value.substr(1, value.length - 2).toLowerCase();
-  let component = compilingContext.parametrizedComponentFactories.getComponent(value, true);
+  let component = compilingContext.parametrizedComponentFactories.getComponent(
+    value,
+    true
+  );
   if (!component) {
     throw new Error("no factory found for '" + value + "'");
   }
@@ -225,11 +232,11 @@ function compileParametrizedValue(value, compilingContext, template) {
 }
 
 function compileObject(objDescription, compilingContext) {
-  const objectC = new ConstantComponent('{');
+  const objectC = new ConstantComponent("{");
   const constants = [];
   const patterns = [];
   _.each(objDescription, function (desc, key) {
-    if (key.indexOf('__') === 0) {
+    if (key.indexOf("__") === 0) {
       // meta key
       return;
     }
@@ -237,9 +244,13 @@ function compileObject(objDescription, compilingContext) {
     const options = getOptions(desc);
     let component;
     if (/^\{.*\}$/.test(key)) {
-      component = compileParametrizedValue(key, compilingContext, options.template);
+      component = compileParametrizedValue(
+        key,
+        compilingContext,
+        options.template
+      );
       patterns.push(component);
-    } else if (key === '*') {
+    } else if (key === "*") {
       component = new SharedComponent(key);
       patterns.push(component);
     } else {
@@ -251,12 +262,12 @@ function compileObject(objDescription, compilingContext) {
       component.addComponent(subComponent);
     });
   });
-  objectC.addComponent(new ObjectComponent('inner', constants, patterns));
+  objectC.addComponent(new ObjectComponent("inner", constants, patterns));
   return objectC;
 }
 
 function compileList(listRule, compilingContext) {
-  const listC = new ConstantComponent('[');
+  const listC = new ConstantComponent("[");
   _.each(listRule, function (desc) {
     _.each(compileDescription(desc, compilingContext), function (component) {
       listC.addComponent(component);
@@ -270,18 +281,23 @@ function compileCondition(description, compiledObject) {
   if (description.lines_regex) {
     return new ConditionalProxy(function (context, editor) {
       const lines = editor
-        .getLines(context.requestStartRow, editor.getCurrentPosition().lineNumber)
-        .join('\n');
-      return new RegExp(description.lines_regex, 'm').test(lines);
+        .getLines(
+          context.requestStartRow,
+          editor.getCurrentPosition().lineNumber
+        )
+        .join("\n");
+      return new RegExp(description.lines_regex, "m").test(lines);
     }, compiledObject);
   } else {
-    throw 'unknown condition type - got: ' + JSON.stringify(description);
+    throw new Error(
+      "unknown condition type - got: " + JSON.stringify(description)
+    );
   }
 }
 
 // a list of component that match anything but give auto complete suggestions based on global API entries.
 export function globalsOnlyAutocompleteComponents() {
-  return [new GlobalOnlyComponent('__global__')];
+  return [new GlobalOnlyComponent("__global__")];
 }
 
 /**
@@ -297,7 +313,11 @@ export function globalsOnlyAutocompleteComponents() {
  *   }
  * }
  */
-export function compileBodyDescription(endpointId, description, parametrizedComponentFactories) {
+export function compileBodyDescription(
+  endpointId,
+  description,
+  parametrizedComponentFactories
+) {
   return compileDescription(
     description,
     new CompilingContext(endpointId, parametrizedComponentFactories)

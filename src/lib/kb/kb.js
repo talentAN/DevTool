@@ -16,15 +16,15 @@ let ACTIVE_API = new Api();
 
 const isNotAnIndexName = (name) => name[0] === "_" && name !== "_all";
 
-const idAutocompleteComponentFactory = (name, parent) => {
+const _idAutocompleteComponentFactory = (name, parent) => {
   return new IdAutocompleteComponent(name, parent);
 };
-const parametrizedComponentFactories = {
+const _parametrizedComponentFactories = {
   getComponent: function (name, parent, provideDefault) {
     if (this[name]) {
       return this[name];
     } else if (provideDefault) {
-      return idAutocompleteComponentFactory;
+      return _idAutocompleteComponentFactory;
     }
   },
   index: function (name, parent) {
@@ -42,10 +42,10 @@ const parametrizedComponentFactories = {
     return new TypeAutocompleteComponent(name, parent, true);
   },
   id: function (name, parent) {
-    return idAutocompleteComponentFactory(name, parent);
+    return _idAutocompleteComponentFactory(name, parent);
   },
   transform_id: function (name, parent) {
-    return idAutocompleteComponentFactory(name, parent);
+    return _idAutocompleteComponentFactory(name, parent);
   },
   username: function (name, parent) {
     return new UsernameAutocompleteComponent(name, parent);
@@ -57,10 +57,10 @@ const parametrizedComponentFactories = {
     return new TemplateAutocompleteComponent(name, parent);
   },
   task_id: function (name, parent) {
-    return idAutocompleteComponentFactory(name, parent);
+    return _idAutocompleteComponentFactory(name, parent);
   },
   ids: function (name, parent) {
-    return idAutocompleteComponentFactory(name, parent, true);
+    return _idAutocompleteComponentFactory(name, parent, true);
   },
   fields: function (name, parent) {
     return new FieldAutocompleteComponent(name, parent, true);
@@ -104,6 +104,7 @@ export function getEndpointBodyCompleteComponents(endpoint) {
 }
 
 export function getTopLevelUrlCompleteComponents(method) {
+  // debugger;
   return ACTIVE_API.getTopLevelUrlCompleteComponents(method);
 }
 
@@ -113,13 +114,12 @@ export function getGlobalAutocompleteComponents(term, throwOnMissing) {
 
 function loadApisFromJson(
   json,
-  urlParametrizedComponentFactories,
+  urlParametrizedComponentFactories = _parametrizedComponentFactories,
   bodyParametrizedComponentFactories
 ) {
-  urlParametrizedComponentFactories =
-    urlParametrizedComponentFactories || parametrizedComponentFactories;
   bodyParametrizedComponentFactories =
     bodyParametrizedComponentFactories || urlParametrizedComponentFactories;
+
   const api = new Api(
     urlParametrizedComponentFactories,
     bodyParametrizedComponentFactories
