@@ -32,7 +32,7 @@ const Editor = (props: any) => {
   // useUIAceKeyboardMode(textArea);
 
   useEffect(() => {
-    // create a ZillizEditor instance.
+    // create a MilvusEditor instance.
     const editor = create(editorRef.current!);
     editorInstanceRef.current = editor;
     const textareaElement = editorRef.current!.querySelector("textarea");

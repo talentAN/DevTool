@@ -50,6 +50,7 @@ export class UrlPatternMatcher {
       };
     });
   }
+
   addEndpoint(pattern, endpoint) {
     // the parttern is endpoints[key].patterns's items
     // endpoint is endpoints[key]
@@ -126,6 +127,7 @@ export class UrlPatternMatcher {
       new AcceptEndpointComponent(endpoint, activeComponent);
     });
   }
+
   getTopLevelComponents = function (method) {
     const methodRoot = this[method];
     if (!methodRoot) {

@@ -28,7 +28,7 @@ import RowParser from "../utils/helpers/RowParser";
 import * as InputMode from "./mode/input";
 const _AceRange = ace.acequire("ace/range").Range;
 
-export class ZillizEditor implements CoreEditor {
+export class MilvusEditor implements CoreEditor {
   private _aceOnPaste: any;
   resize: () => void;
   currentReqRange: any;

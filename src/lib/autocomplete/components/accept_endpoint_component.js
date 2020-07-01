@@ -9,6 +9,7 @@ export class AcceptEndpointComponent extends SharedComponent {
     this.endpoint = endpoint;
   }
   match(token, context, editor) {
+    // console.info('yyyyyyy')
     if (token !== URL_PATH_END_MARKER) {
       return null;
     }

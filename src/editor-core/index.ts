@@ -23,6 +23,6 @@ import "brace/ext/searchbox";
 import "brace/mode/json";
 import "brace/mode/text";
 
-export * from "./ZillizEditor";
+export * from "./milvus_editor";
 export * from "./create_readonly";
 export * from "./create";

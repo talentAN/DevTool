@@ -312,7 +312,6 @@ export function getCurrentMethodAndTokenPaths(
   if (t && t.type === "method") {
     ret.method = t.value;
   }
-  // console.info("=>ret is :", ret);
   return ret;
 }
 
@@ -836,14 +835,14 @@ export default function ({
     //   urlTokenPath: [],
     // }
     const ret = getCurrentMethodAndTokenPaths(editor, pos, parser);
-    // console.info("xxx", ret);
     context.method = ret.method;
     context.token = ret.token;
     context.otherTokenValues = ret.otherTokenValues;
     context.urlTokenPath = ret.urlTokenPath;
-    // autoComplets to use
+    // get all candidates in this method
     const components = getTopLevelUrlCompleteComponents(context.method);
-    // what this method for
+    console.info("xxx", components);
+    // get and put valid cdds to context
     populateContext(ret.urlTokenPath, context, editor, true, components);
     // before run next, the context.autoCompleteSet shoud be a valid array.
     context.autoCompleteSet = addMetaToTermsList(

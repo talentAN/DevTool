@@ -150,6 +150,7 @@ export function populateContext(
   includeAutoComplete,
   components
 ) {
+  debugger;
   let walkStates = walkTokenPath(
     tokenPath,
     [new WalkingState("ROOT", components, [])],

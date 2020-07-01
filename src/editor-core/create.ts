@@ -1,9 +1,9 @@
 import ace from "brace";
-import { ZillizEditor } from "./ZillizEditor";
+import { MilvusEditor } from "./milvus_editor";
 
 export const create = (el: HTMLElement) => {
   const aceEditor = ace.edit(el);
-  const zillizEditor = new ZillizEditor(aceEditor);
+  const zillizEditor = new MilvusEditor(aceEditor);
   zillizEditor.highlightCurrentRequests();
   return zillizEditor;
 };
