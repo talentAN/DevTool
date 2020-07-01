@@ -17,8 +17,8 @@
  * under the License.
  */
 
-import _ from 'lodash';
-import { SharedComponent } from '.';
+import _ from "lodash";
+import { SharedComponent } from ".";
 /** A component that suggests one of the give options, but accepts anything */
 export class ListComponent extends SharedComponent {
   constructor(name, list, parent, multiValued, allowNonValidValues) {
@@ -29,7 +29,9 @@ export class ListComponent extends SharedComponent {
         }
       : list;
     this.multiValued = _.isUndefined(multiValued) ? true : multiValued;
-    this.allowNonValidValues = _.isUndefined(allowNonValidValues) ? false : allowNonValidValues;
+    this.allowNonValidValues = _.isUndefined(allowNonValidValues)
+      ? false
+      : allowNonValidValues;
   }
   getTerms(context, editor) {
     if (!this.multiValued && context.otherTokenValues) {
@@ -84,7 +86,10 @@ export class ListComponent extends SharedComponent {
     if (!Array.isArray(token)) {
       token = [token];
     }
-    if (!this.allowNonValidValues && !this.validateTokens(token, context, editor)) {
+    if (
+      !this.allowNonValidValues &&
+      !this.validateTokens(token, context, editor)
+    ) {
       return null;
     }
 

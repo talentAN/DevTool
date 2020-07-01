@@ -1,9 +1,4 @@
-export const DEFAULT_INPUT_VALUE = `GET _search
-{
-  "query": {
-    "match_all": {}
-  }
-}
+export const DEFAULT_INPUT_VALUE = `GET _cluster/state
 
 POST _aliases
 {

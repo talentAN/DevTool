@@ -28,7 +28,7 @@ import { FullRequestComponent } from "./full_request_component";
 
 /**
  * @param parametrizedComponentFactories a dict of the following structure
- * that will be used as a fall back for pattern parameters (i.e.: {indices})
+ * that will be used as a fallback for pattern parameters (i.e.: {indices})
  * {
  *   indices: function (part, parent) {
  *      return new SharedComponent(part, parent)
@@ -37,11 +37,10 @@ import { FullRequestComponent } from "./full_request_component";
  * @constructor
  */
 export class UrlPatternMatcher {
-  // This is not really a component, just a handy container to make iteration logic simpler
   constructor(parametrizedComponentFactories) {
     // We'll group endpoints by the methods which are attached to them,
-    //to avoid suggesting endpoints that are incompatible with the
-    //method that the user has entered.
+    // to avoid suggesting endpoints that are incompatible with the
+    // method that the user has entered.
     METHODS.forEach((method) => {
       this[method] = {
         rootComponent: new SharedComponent("ROOT"),
@@ -55,12 +54,10 @@ export class UrlPatternMatcher {
     // the parttern is endpoints[key].patterns's items
     // endpoint is endpoints[key]
     endpoint.methods.forEach((method) => {
-      // c is a temp value which will be assignment to activeComponent
-      let c;
+      let c; // c is a temp value which will be assignment to activeComponent
       let activeComponent = this[method].rootComponent;
-      // FIXME: what if template and what it for? Useless for us at the moment Check this later
+      // FIXME: Useless for us at the moment Check this later
       if (endpoint.template) {
-        console.info("666");
         new FullRequestComponent(
           pattern + "[body]",
           activeComponent,
@@ -71,10 +68,9 @@ export class UrlPatternMatcher {
       const partList = pattern.split("/");
       partList.forEach(
         function (part, partIndex) {
-          // 有{}括起来的部分
+          // 有变量
           if (part.search(/^{.+}$/) >= 0) {
-            // delete '{' and '}', get content inside
-            part = part.substr(1, part.length - 2);
+            part = part.substr(1, part.length - 2); // delete '{' and '}', get content inside
             const target = activeComponent.getComponent(part);
             // we already have something for this, reuse
             if (target) {
@@ -83,41 +79,41 @@ export class UrlPatternMatcher {
             }
             // a new path, resolve.
             if ((c = endpointComponents[part])) {
-              // console.info("xxx", Array.isArray(c));
               // endpoint specific. Support list
               c = Array.isArray(c)
                 ? new ListComponent(part, c, activeComponent)
-                : new SharedComponent(part);
+                : // TODO: why don't push activeComponent here? And since it's not in main tree, how could be found anyway?
+                  new SharedComponent(part);
             } else if (
+              // 如果变量的内容没有被endpoint定义, 我们到默认值里面找找
               (c = this[method].parametrizedComponentFactories.getComponent(
                 part
               ))
             ) {
               // c is a function
-              console.info("yyy");
               c = c(part, activeComponent);
             } else {
-              console.info("zzz");
-              // just accept whatever with not suggestions
+              // 如果默认值里面也没有, just accept whatever with not suggestions
               c = new SimpleParamComponent(part, activeComponent);
             }
             activeComponent = c;
             // ----------------- first if end ------------------------
           } else {
-            // 当前lookAhead是纯字符串. 如果后面有{}, 跳出循环, 如果没有就拼接上, lookAhead最终是不包含{}的纯字符串
+            // 当前lookAhead始终是不包含变量的纯字符串. 如果后面有变量, 跳出循环, 如果没有就拼接上;
+            // 最终生成一个ConstantComponent, 并作为当前activeComponent的child.
             let lookAhead = part;
-            let s;
             for (partIndex++; partIndex < partList.length; partIndex++) {
-              s = partList[partIndex];
-              if (s.indexOf("{") >= 0) {
+              const cur = partList[partIndex];
+              if (cur.indexOf("{") >= 0) {
                 break;
               }
-              lookAhead += "/" + s;
+              lookAhead += "/" + cur;
             }
-
-            if (activeComponent.getComponent(part)) {
+            const target = activeComponent.getComponent(part);
+            if (target) {
               // we already have something for this, reuse
-              activeComponent = activeComponent.getComponent(part);
+              activeComponent = target;
+              // here activeComponent is a ConstantComponent, so it could use addOption
               activeComponent.addOption(lookAhead);
             } else {
               c = new ConstantComponent(part, activeComponent, lookAhead);
@@ -130,13 +126,11 @@ export class UrlPatternMatcher {
       new AcceptEndpointComponent(endpoint, activeComponent);
     });
   }
-  // TODO:
   getTopLevelComponents = function (method) {
     const methodRoot = this[method];
     if (!methodRoot) {
       return [];
     }
-    // console.info("xxx", methodRoot.rootComponent.next);
     return methodRoot.rootComponent.next;
   };
 }

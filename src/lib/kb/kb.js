@@ -19,6 +19,10 @@ const isNotAnIndexName = (name) => name[0] === "_" && name !== "_all";
 const _idAutocompleteComponentFactory = (name, parent) => {
   return new IdAutocompleteComponent(name, parent);
 };
+/**
+ *  url path解析是支持变量的, 但有些变量是共通的(比如indices, 就是一串数字), 不需要每个path单独注册的, 我们把相应的默认值放在这个函数里面
+ * 
+ */
 const _parametrizedComponentFactories = {
   getComponent: function (name, parent, provideDefault) {
     if (this[name]) {
