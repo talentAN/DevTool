@@ -9,7 +9,11 @@
 
   - fn chain
     => register description
-    => recognize type by position(method, url_path, url_parameter...)
+    => get Context
+      - method
+      - token
+      - otherTokenValues
+      - urlTokenPath
     => get recommonded suggestions from description registered before;
     - 本质上是把路径切割成一块一块, 然后用一棵树去进行分段查找
     - 自动补全要支持你输入的字符串不一定是开头, 要可以拼接, 所以要处理这个地方的查找会比较复杂.
@@ -20,16 +24,16 @@
   - body
   - TODO:
     - what globals for?
-    - what endpoints for?
+    - what endpoints for => 补全
     - what **flag** for ?
     - what patterns for? => 语法识别
-      - {indices} => 猜测为系统保留字 目前看来是数字
-      - {type} => 猜测为系统保留字
-      - {id} => => 猜测为系统保留字
-      - {metrics} => defined in url_components
+      - {indices} => 目前看来是数字变量
+      - {type}
+      - {id}
+      - {metrics}
     - what documentation for ?
     - what templates for ?
-    - what url_components for ?
+    - what url_components for => 给变量用的
 
   ```javascript
   // structer of endpoints[key]

@@ -841,7 +841,6 @@ export default function ({
     const components = getTopLevelUrlCompleteComponents(context.method);
     // get and put valid cdds to context
     populateContext(ret.urlTokenPath, context, editor, true, components);
-    console.info("yyy", context.autoCompleteSet);
     // before run next, the context.autoCompleteSet shoud be a valid array.
     context.autoCompleteSet = addMetaToTermsList(
       context.autoCompleteSet,
