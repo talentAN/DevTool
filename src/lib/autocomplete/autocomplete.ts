@@ -56,7 +56,7 @@ function isUrlParamsToken(token: any) {
  * separated.
  *
  */
-export function getCurrentMethodAndTokenPaths(
+function _getCurrentMethodAndTokenPaths(
   editor: CoreEditor,
   pos: Position,
   parser: any,
@@ -69,7 +69,6 @@ export function getCurrentMethodAndTokenPaths(
   });
   const startPos = pos;
   let bodyTokenPath: any = [];
-  // what is ret? =>
   const ret: any = {};
 
   const STATES = {
@@ -97,7 +96,6 @@ export function getCurrentMethodAndTokenPaths(
     }
   }
   let walkedSomeBody = false;
-  // console.info("zzz", t);
   // climb one scope at a time and get the scope key
   for (
     ;
@@ -834,16 +832,16 @@ export default function ({
     //   urlParamsTokenPath: null,
     //   urlTokenPath: [],
     // }
-    const ret = getCurrentMethodAndTokenPaths(editor, pos, parser);
+    const ret = _getCurrentMethodAndTokenPaths(editor, pos, parser);
     context.method = ret.method;
     context.token = ret.token;
     context.otherTokenValues = ret.otherTokenValues;
     context.urlTokenPath = ret.urlTokenPath;
     // get all candidates in this method
     const components = getTopLevelUrlCompleteComponents(context.method);
-    console.info("xxx", components);
     // get and put valid cdds to context
     populateContext(ret.urlTokenPath, context, editor, true, components);
+    console.info("yyy", context.autoCompleteSet);
     // before run next, the context.autoCompleteSet shoud be a valid array.
     context.autoCompleteSet = addMetaToTermsList(
       context.autoCompleteSet,
@@ -852,7 +850,7 @@ export default function ({
   }
 
   function addUrlParamsAutoCompleteSetToContext(context: any, pos: Position) {
-    const ret = getCurrentMethodAndTokenPaths(editor, pos, parser);
+    const ret = _getCurrentMethodAndTokenPaths(editor, pos, parser);
     context.method = ret.method;
     context.otherTokenValues = ret.otherTokenValues;
     context.urlTokenPath = ret.urlTokenPath;
@@ -896,7 +894,7 @@ export default function ({
   }
 
   function addBodyAutoCompleteSetToContext(context: any, pos: Position) {
-    const ret = getCurrentMethodAndTokenPaths(editor, pos, parser);
+    const ret = _getCurrentMethodAndTokenPaths(editor, pos, parser);
     context.method = ret.method;
     context.otherTokenValues = ret.otherTokenValues;
     context.urlTokenPath = ret.urlTokenPath;

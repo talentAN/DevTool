@@ -19,9 +19,9 @@
 
 import _ from "lodash";
 import {
+  wrapComponentWithDefaults,
   WalkingState,
   walkTokenPath,
-  wrapComponentWithDefaults,
 } from "./engine";
 import {
   ConstantComponent,
