@@ -1,4 +1,6 @@
-import _ from "lodash";
+import _defaults from "lodash.defaults";
+import clone from "lodash.clone";
+import debounce from "lodash.defaults";
 import {
   getTopLevelUrlCompleteComponents,
   getEndpointBodyCompleteComponents,
@@ -370,11 +372,11 @@ export default function ({
   // helper for complete context.autoCompleteSet;
   // list->context.autoCompleteSet meta -> endpoint template? I don't know
   function addMetaToTermsList(list: any, meta: any, template?: string) {
-    return _.map(list, function (t: any) {
+    return list.map(function (t: any) {
       if (typeof t !== "object") {
         t = { name: t };
       }
-      return _.defaults(t, { meta, template });
+      return _defaults(t, { meta, template });
     });
   }
 
@@ -405,8 +407,8 @@ export default function ({
     let templateInserted = false;
     if (
       context.addTemplate &&
-      !_.isUndefined(term.template) &&
-      !_.isNull(term.template)
+      term.template !== undefined &&
+      term.template !== null
     ) {
       let indentedTemplateLines;
       // In order to allow triple quoted strings in template completion we check the `__raw_`
@@ -536,7 +538,7 @@ export default function ({
 
     addReplacementInfoToContext(context, pos);
 
-    context.createdWithToken = _.clone(context.updatedForToken);
+    context.createdWithToken = clone(context.updatedForToken);
 
     return context;
   }
@@ -632,7 +634,7 @@ export default function ({
     //   - Broken scenario { , bla|
     //   - Nice token, broken before: {, "bla"
 
-    context.updatedForToken = _.clone(
+    context.updatedForToken = clone(
       editor.getTokenAt({ lineNumber: pos.lineNumber, column: pos.column })
     );
     if (!context.updatedForToken) {
@@ -972,7 +974,7 @@ export default function ({
     return context;
   }
 
-  const evaluateCurrentTokenAfterAChange = _.debounce(
+  const evaluateCurrentTokenAfterAChange = debounce(
     function evaluateCurrentTokenAfterAChange(pos: Position) {
       let currentToken = editor.getTokenAt(pos)!;
       if (!currentToken) {
@@ -1081,7 +1083,7 @@ export default function ({
                 },
               };
             }
-            terms.push(_.defaults(term, defaults));
+            terms.push(_defaults(term, defaults));
           }
         });
         terms.sort(function (t1: any, t2: any) {
