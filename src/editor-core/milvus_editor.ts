@@ -7,7 +7,7 @@
 
 import ace from "brace";
 import { Editor as IAceEditor, IEditSession as IAceEditSession } from "brace";
-import _ from "lodash";
+import _debounce from "lodash.debounce";
 import { collapseLiteralStrings } from "../lib/json_xjson_translation_tools";
 import {
   CoreEditor,
@@ -353,7 +353,7 @@ export class MilvusEditor implements CoreEditor {
     ]);
   }
 
-  highlightCurrentRequests = _.debounce(async () => {
+  highlightCurrentRequests = _debounce(async () => {
     await this.waitForLatestTokens();
     const expandedRange = await this.expandRangeToRequestEdges();
     if (expandedRange === null && this.currentReqRange === null) {
@@ -441,7 +441,7 @@ export class MilvusEditor implements CoreEditor {
 
     if (rowOrPos == null) {
       curRow = this.getCurrentPosition().lineNumber;
-    } else if (_.isObject(rowOrPos)) {
+    } else if (typeof rowOrPos === "object") {
       curRow = (rowOrPos as Position).lineNumber;
     } else {
       curRow = rowOrPos as number;
@@ -458,7 +458,7 @@ export class MilvusEditor implements CoreEditor {
     let curRow: number;
     if (rowOrPos == null) {
       curRow = this.getCurrentPosition().lineNumber;
-    } else if (_.isObject(rowOrPos)) {
+    } else if (typeof rowOrPos === "object") {
       curRow = (rowOrPos as Position).lineNumber;
     } else {
       curRow = rowOrPos as number;
@@ -475,7 +475,7 @@ export class MilvusEditor implements CoreEditor {
     };
   };
 
-  autoIndent = _.debounce(async () => {
+  autoIndent = _debounce(async () => {
     await this.waitForLatestTokens();
     const reqRange = await this.getRequestRange();
     if (!reqRange) {
@@ -777,7 +777,7 @@ export class MilvusEditor implements CoreEditor {
     range?: Range
   ): Promise<string> => {
     const requests = await this.getRequestsInRange(range, true);
-    const result = _.map(requests, (req) => {
+    const result = requests.map((req) => {
       if (typeof req === "string") {
         // no request block
         return req;
