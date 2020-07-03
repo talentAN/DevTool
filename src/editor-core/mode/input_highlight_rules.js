@@ -40,6 +40,7 @@ export function mergeTokens(/* ... */) {
 
 const oop = ace.acequire("ace/lib/oop");
 const { TextHighlightRules } = ace.acequire("ace/mode/text_highlight_rules");
+
 export function InputHighlightRules() {
   // regexp must not have capturing parentheses. Use (?:) instead.
   // regexps are ordered -> the first match is used

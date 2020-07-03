@@ -18,7 +18,7 @@
  */
 
 export {
-  ElasticsearchSqlHighlightRules,
+  MilvusSqlHighlightRules,
   ScriptHighlightRules,
   XJsonHighlightRules,
   addXJsonToRules,

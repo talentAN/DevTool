@@ -17,19 +17,21 @@
  * under the License.
  */
 
-import ace from 'brace';
-import { XJsonHighlightRules } from '../index';
-import { workerModule } from './worker';
+import ace from "brace";
+import { XJsonHighlightRules } from "../index";
+import { workerModule } from "./worker";
 
-const { WorkerClient } = ace.acequire('ace/worker/worker_client');
+const { WorkerClient } = ace.acequire("ace/worker/worker_client");
 
-const oop = ace.acequire('ace/lib/oop');
+const oop = ace.acequire("ace/lib/oop");
 
-const { Mode: JSONMode } = ace.acequire('ace/mode/json');
-const { Tokenizer: AceTokenizer } = ace.acequire('ace/tokenizer');
-const { MatchingBraceOutdent } = ace.acequire('ace/mode/matching_brace_outdent');
-const { CstyleBehaviour } = ace.acequire('ace/mode/behaviour/cstyle');
-const { FoldMode: CStyleFoldMode } = ace.acequire('ace/mode/folding/cstyle');
+const { Mode: JSONMode } = ace.acequire("ace/mode/json");
+const { Tokenizer: AceTokenizer } = ace.acequire("ace/tokenizer");
+const { MatchingBraceOutdent } = ace.acequire(
+  "ace/mode/matching_brace_outdent"
+);
+const { CstyleBehaviour } = ace.acequire("ace/mode/behaviour/cstyle");
+const { FoldMode: CStyleFoldMode } = ace.acequire("ace/mode/folding/cstyle");
 
 const XJsonMode: any = function XJsonMode(this: any) {
   const ruleset: any = new (XJsonHighlightRules as any)();
@@ -43,16 +45,18 @@ const XJsonMode: any = function XJsonMode(this: any) {
 oop.inherits(XJsonMode, JSONMode);
 
 // Then clobber `createWorker` method to install our worker source. Per ace's wiki: https://github.com/ajaxorg/ace/wiki/Syntax-validation
-(XJsonMode.prototype as any).createWorker = function (session: ace.IEditSession) {
-  const xJsonWorker = new WorkerClient(['ace'], workerModule, 'JsonWorker');
+(XJsonMode.prototype as any).createWorker = function (
+  session: ace.IEditSession
+) {
+  const xJsonWorker = new WorkerClient(["ace"], workerModule, "JsonWorker");
 
   xJsonWorker.attachToDocument(session.getDocument());
 
-  xJsonWorker.on('annotate', function (e: { data: any }) {
+  xJsonWorker.on("annotate", function (e: { data: any }) {
     session.setAnnotations(e.data);
   });
 
-  xJsonWorker.on('terminate', function () {
+  xJsonWorker.on("terminate", function () {
     session.clearAnnotations();
   });
 
