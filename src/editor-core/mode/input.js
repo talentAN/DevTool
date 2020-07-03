@@ -19,7 +19,6 @@
 
 import ace from "brace";
 import { workerModule } from "./worker";
-import { ScriptMode } from "./script";
 import { InputHighlightRules } from "./input_highlight_rules";
 
 const oop = ace.acequire("ace/lib/oop");
@@ -38,13 +37,6 @@ export function Mode() {
   this.$outdent = new MatchingBraceOutdent();
   this.$behaviour = new CstyleBehaviour();
   this.foldingRules = new CStyleFoldMode();
-  this.createModeDelegates({
-    "script-": ScriptMode,
-  });
-  // console.info(
-  //   "xxx",
-  //   this.$tokenizer,
-  // );
 }
 oop.inherits(Mode, TextMode);
 

@@ -22,7 +22,6 @@ type I_WalkingState = {
   contextExtensionList: any[];
   depth: number;
   priority: number | undefined;
-
   name?: string;
 };
 
@@ -110,9 +109,8 @@ export function walkTokenPath(
       }
     });
   });
-
+  // no where to go, still return context variables returned so far..
   if (nextWalkingStates.length === 0) {
-    // no where to go, still return context variables returned so far..
     return walkingStates.map(
       (ws: I_WalkingState) =>
         new (WalkingState as any)(ws.name, [], ws.contextExtensionList)
@@ -145,7 +143,7 @@ export function populateContext(
   editor: CoreEditor,
   includeAutoComplete: boolean,
   components: any[]
-) {
+): void {
   let walkStates = walkTokenPath(
     tokenPath,
     [new (WalkingState as any)("ROOT", components, [])],

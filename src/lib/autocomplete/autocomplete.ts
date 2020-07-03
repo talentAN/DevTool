@@ -18,10 +18,16 @@ import {
   isMethodToken,
   isWhitespaceToken,
 } from "./Helper";
+
+const STATES = {
+  looking_for_key: 0, // looking for a key without jumping over anything but white space and colon(冒号).
+  looking_for_scope_start: 1, // skip everything until scope start
+  start: 3,
+};
 let lastEvaluatedToken: any = null;
 
 // splited logics
-const _getInitState = (tokenIter: any, startPos: Position, STATES: any) => {
+const _getInitState = (tokenIter: any, startPos: Position) => {
   let curToken = tokenIter.getCurrentToken();
   let state = STATES.start;
   // handle if curToken not exists or the postion is first line
@@ -47,12 +53,7 @@ const _handleBody = (
   startPos: Position,
   _curContext: CurContext
 ) => {
-  const STATES = {
-    looking_for_key: 0, // looking for a key without jumping over anything but white space and colon(冒号).
-    looking_for_scope_start: 1, // skip everything until scope start
-    start: 3,
-  };
-  let state = _getInitState(tokenIter, startPos, STATES);
+  let state = _getInitState(tokenIter, startPos);
   let curToken = tokenIter.getCurrentToken();
   let walkedSomeBody = false;
   // climb one scope at a time and get the scope key
@@ -881,7 +882,6 @@ export default function ({
     context.urlTokenPath = _curContext.urlTokenPath;
     if (!_curContext.urlTokenPath) {
       // zero length tokenPath is true
-
       return context;
     }
 

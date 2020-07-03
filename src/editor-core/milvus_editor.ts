@@ -9,7 +9,7 @@ import ace, {
   Editor as IAceEditor,
   IEditSession as IAceEditSession,
 } from "brace";
-import _debounce from "lodash.debounce";
+import debounce from "lodash.debounce";
 import {
   CoreEditor,
   Position,
@@ -26,7 +26,6 @@ import { smartResize } from "../utils/helpers/Editor";
 import { AceTokensProvider } from "../utils/helpers/token_provider";
 import { createTokenIterator } from "../utils/helpers/token_iterator";
 import { collapseLiteralStrings } from "../utils/helpers/ContentFormatters";
-
 import RowParser from "../utils/helpers/RowParser";
 import * as InputMode from "./mode/input";
 const _AceRange = ace.acequire("ace/range").Range;
@@ -356,7 +355,7 @@ export class MilvusEditor implements CoreEditor {
     ]);
   }
 
-  highlightCurrentRequests = _debounce(async () => {
+  highlightCurrentRequests = debounce(async () => {
     await this.waitForLatestTokens();
     const expandedRange = await this.expandRangeToRequestEdges();
     if (expandedRange === null && this.currentReqRange === null) {
@@ -478,7 +477,7 @@ export class MilvusEditor implements CoreEditor {
     };
   };
 
-  autoIndent = _debounce(async () => {
+  autoIndent = debounce(async () => {
     await this.waitForLatestTokens();
     const reqRange = await this.getRequestRange();
     if (!reqRange) {

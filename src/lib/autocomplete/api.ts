@@ -1,4 +1,3 @@
-import _ from "lodash";
 import _defaults from "lodash.defaults";
 import { UrlPatternMatcher } from "./components";
 import { UrlParams } from "./url_params";
@@ -60,7 +59,7 @@ function Api(
     // endpoint is the kEY of endpoints;
     // description is endpoints[KEY]
     const copiedDescription: any = {};
-    _.extend(copiedDescription, description);
+    Object.assign(copiedDescription, description);
     // Add default in case code break down here.
     _defaults(copiedDescription, {
       id: endpoint,
