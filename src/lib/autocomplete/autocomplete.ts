@@ -5,8 +5,10 @@ import {
   getGlobalAutocompleteComponents,
   getUnmatchedEndpointComponents,
 } from "../kb/kb";
+import { URL_PATH_END_MARKER } from "./components/accept_endpoint_component";
 import { populateContext } from "./engine";
-import { createTokenIterator } from "../factories";
+import { createTokenIterator } from "../../utils/helpers/token_iterator";
+import { jsonToString } from "../../utils/helpers/ContentFormatters";
 import { Position, Range, CoreEditor, Token } from "../../types";
 import {
   isURLToken,
@@ -15,7 +17,6 @@ import {
   isWhitespaceToken,
 } from "./Helper";
 let lastEvaluatedToken: any = null;
-const URL_PATH_END_MARKER = "__url_path_end__";
 
 type CurContext = {
   method: string;
@@ -26,10 +27,6 @@ type CurContext = {
   bodyTokenPath: string[];
   requestStartRow?: number;
 };
-
-function _jsonToString(data: any, indent: boolean) {
-  return JSON.stringify(data, null, indent ? 2 : 0);
-}
 
 // splited logics
 const _getInitState = (tokenIter: any, startPos: Position, STATES: any) => {
@@ -417,7 +414,7 @@ export default function ({
       if (term.template.__raw && term.template.value) {
         indentedTemplateLines = term.template.value.split("\n");
       } else {
-        indentedTemplateLines = _jsonToString(term.template, true).split("\n");
+        indentedTemplateLines = jsonToString(term.template, true).split("\n");
       }
       let currentIndentation = editor.getLineValue(
         context.rangeToReplace.start.lineNumber

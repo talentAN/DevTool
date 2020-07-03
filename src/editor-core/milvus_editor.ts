@@ -5,10 +5,11 @@
 // After get contents, we need to get standard request in json or curl format.
 // So wo define other methods base on these wrappers to operat request
 
-import ace from "brace";
-import { Editor as IAceEditor, IEditSession as IAceEditSession } from "brace";
+import ace, {
+  Editor as IAceEditor,
+  IEditSession as IAceEditSession,
+} from "brace";
 import _debounce from "lodash.debounce";
-import { collapseLiteralStrings } from "../lib/json_xjson_translation_tools";
 import {
   CoreEditor,
   Position,
@@ -18,12 +19,14 @@ import {
   EditorEvent,
   AutoCompleterFunction,
 } from "../types";
-import { AceTokensProvider } from "../lib/ace_token_provider";
-import { createTokenIterator } from "../lib/factories";
 import Autocomplete from "../lib/autocomplete/autocomplete";
-import * as utils from "../lib/utils";
+import * as utils from "../utils/helpers/ContentFormatters";
 import * as curl from "../utils/helpers/Curl";
 import { smartResize } from "../utils/helpers/Editor";
+import { AceTokensProvider } from "../utils/helpers/token_provider";
+import { createTokenIterator } from "../utils/helpers/token_iterator";
+import { collapseLiteralStrings } from "../utils/helpers/ContentFormatters";
+
 import RowParser from "../utils/helpers/RowParser";
 import * as InputMode from "./mode/input";
 const _AceRange = ace.acequire("ace/range").Range;

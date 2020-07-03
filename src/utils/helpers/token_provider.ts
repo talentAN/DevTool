@@ -17,15 +17,19 @@
  * under the License.
  */
 
-import { IEditSession, TokenInfo as BraceTokenInfo } from 'brace';
-import { TokensProvider, Token, Position } from '../../types';
+import { IEditSession, TokenInfo as BraceTokenInfo } from "brace";
+import { TokensProvider, Token, Position } from "../../types";
 
 // Brace's token information types are not accurate.
 interface TokenInfo extends BraceTokenInfo {
   type: string;
 }
 
-const toToken = (lineNumber: number, column: number, token: TokenInfo): Token => ({
+const toToken = (
+  lineNumber: number,
+  column: number,
+  token: TokenInfo
+): Token => ({
   type: token.type,
   value: token.value,
   position: {
@@ -35,7 +39,7 @@ const toToken = (lineNumber: number, column: number, token: TokenInfo): Token =>
 });
 
 const toTokens = (lineNumber: number, tokens: TokenInfo[]): Token[] => {
-  let acc = '';
+  let acc = "";
   return tokens.map((token) => {
     const column = acc.length + 1;
     acc += token.value;
@@ -48,7 +52,7 @@ const extractTokenFromAceTokenRow = (
   column: number,
   aceTokens: TokenInfo[]
 ) => {
-  let acc = '';
+  let acc = "";
   for (const token of aceTokens) {
     const start = acc.length + 1;
     acc += token.value;
@@ -85,7 +89,9 @@ export class AceTokensProvider implements TokensProvider {
   }
 
   getTokenAt(pos: Position): Token | null {
-    const tokens: TokenInfo[] = this.session.getTokens(pos.lineNumber - 1) as any;
+    const tokens: TokenInfo[] = this.session.getTokens(
+      pos.lineNumber - 1
+    ) as any;
     if (tokens) {
       return extractTokenFromAceTokenRow(pos.lineNumber, pos.column, tokens);
     }
