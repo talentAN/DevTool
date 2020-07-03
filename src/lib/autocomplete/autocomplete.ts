@@ -345,7 +345,7 @@ function _getCurrentMethodAndTokenPaths(
     bodyTokenPath: [],
   };
   let curToken = tokenIter.getCurrentToken();
-  // 自动补全只有两种情况: 1. url 2.参数
+  // 自动补全只有两种情况: 1. url 2.body
   const isURL = curToken && isURLToken(curToken);
   return isURL
     ? _getUrlCurrentMethodAndTokenPaths(tokenIter, parser, _curContext)
@@ -1062,7 +1062,7 @@ export default function ({
         const terms: any[] = [];
         // filter null terms and normalize term
         context.autoCompleteSet.forEach((term: any) => {
-          if (!!term && term.name != null) {
+          if (!!term && term.name !== null) {
             if (typeof term !== "object") {
               term = {
                 name: term,

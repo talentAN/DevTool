@@ -1,8 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { makeStyles } from "@material-ui/styles";
 import { create } from "../editor-core";
-// is this necessary for us?
-// import { useUIAceKeyboardMode } from "../utils/helpers/use_ui_ace_keyboard_mode";
 import * as CONSTS from "../consts";
 import Actions from "./Actions";
 import { debounce } from "../utils/helpers/PureFns";
@@ -28,8 +26,6 @@ const Editor = (props: any) => {
   const editorInstanceRef: any = useRef(null);
   const [actionTop, setActionTop] = useState(0);
   const classes = useStyles();
-  // const [textArea, setTextArea] = useState<HTMLTextAreaElement | null>(null);
-  // useUIAceKeyboardMode(textArea);
 
   useEffect(() => {
     // create a MilvusEditor instance.
@@ -66,7 +62,6 @@ const Editor = (props: any) => {
     Div_Scroll.addEventListener("scroll", (e: any) => {
       _setActionTop();
     });
-    // setTextArea(textareaElement);
   }, []);
 
   return (

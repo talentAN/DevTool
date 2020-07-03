@@ -1,28 +1,9 @@
-/*
- * Licensed to Elasticsearch B.V. under one or more contributor
- * license agreements. See the NOTICE file distributed with
- * this work for additional information regarding copyright
- * ownership. Elasticsearch B.V. licenses this file to you under
- * the Apache License, Version 2.0 (the "License"); you may
- * not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing,
- * software distributed under the License is distributed on an
- * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- * KIND, either express or implied.  See the License for the
- * specific language governing permissions and limitations
- * under the License.
- */
-
 export function collapseLiteralStrings(data: string) {
   const splitData = data.split(`"""`);
   for (let idx = 1; idx < splitData.length - 1; idx += 2) {
     splitData[idx] = JSON.stringify(splitData[idx]);
   }
-  return splitData.join('');
+  return splitData.join("");
 }
 
 /*
@@ -51,16 +32,25 @@ export function expandLiteralStrings(data: string) {
       // want to expand this to """"test"""" - so we terminate before processing the string
       // further if we detect this either at the start or end of the double quote section.
 
-      if (string[firstDoubleQuoteIdx + 1] === '\\' && string[firstDoubleQuoteIdx + 2] === '"') {
+      if (
+        string[firstDoubleQuoteIdx + 1] === "\\" &&
+        string[firstDoubleQuoteIdx + 2] === '"'
+      ) {
         return string;
       }
 
-      if (string[lastDoubleQuoteIdx - 1] === '"' && string[lastDoubleQuoteIdx - 2] === '\\') {
+      if (
+        string[lastDoubleQuoteIdx - 1] === '"' &&
+        string[lastDoubleQuoteIdx - 2] === "\\"
+      ) {
         return string;
       }
 
       const colonAndAnySpacing = string.slice(0, firstDoubleQuoteIdx);
-      const rawStringifiedValue = string.slice(firstDoubleQuoteIdx, string.length);
+      const rawStringifiedValue = string.slice(
+        firstDoubleQuoteIdx,
+        string.length
+      );
       // Remove one level of JSON stringification
       const jsonValue = JSON.parse(rawStringifiedValue);
       return `${colonAndAnySpacing}"""${jsonValue}"""`;
