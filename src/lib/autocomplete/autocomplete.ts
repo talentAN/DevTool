@@ -6,12 +6,12 @@ import {
   getEndpointBodyCompleteComponents,
   getGlobalAutocompleteComponents,
   getUnmatchedEndpointComponents,
-} from "../kb/kb";
+} from "./getComponents";
 import { URL_PATH_END_MARKER } from "./components/accept_endpoint_component";
 import { populateContext } from "./engine";
 import { createTokenIterator } from "../../utils/helpers/token_iterator";
 import { jsonToString } from "../../utils/helpers/ContentFormatters";
-import { Position, Range, CoreEditor, Token } from "../../types";
+import { Position, Range, CoreEditor, Token, CurContext } from "../../types";
 import {
   isURLToken,
   isUrlParamsToken,
@@ -19,16 +19,6 @@ import {
   isWhitespaceToken,
 } from "./Helper";
 let lastEvaluatedToken: any = null;
-
-type CurContext = {
-  method: string;
-  token: Token | null;
-  otherTokenValues: string | Array<Token | null>;
-  urlTokenPath: string[];
-  urlParamsTokenPath: { [propname: string]: string }[];
-  bodyTokenPath: string[];
-  requestStartRow?: number;
-};
 
 // splited logics
 const _getInitState = (tokenIter: any, startPos: Position, STATES: any) => {
