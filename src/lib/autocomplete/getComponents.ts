@@ -1,3 +1,4 @@
+import forEach from "lodash.foreach";
 import {
   TypeAutocompleteComponent,
   IdAutocompleteComponent,
@@ -133,14 +134,14 @@ function loadApisFromJson(
     bodyParametrizedComponentFactories
   );
   const names: string[] = [];
-  json.forEach(function (apiJson: any, name: string) {
+  forEach(json, function (apiJson: any, name: string) {
     names.unshift(name);
     // FIXME: global autocomplete seem useless for us, pay attention to this later;
     // _.each(apiJson.globals || {}, function (globalJson, globalName) {
     //   console.info("xxx", globalName, globalJson);
     //   api.addGlobalAutocompleteRules(globalName, globalJson);
     // });
-    (apiJson.endpoints || {}).forEach(function (
+    forEach(apiJson.endpoints || {}, function (
       endpointJson: any,
       endpointName: string
     ) {
