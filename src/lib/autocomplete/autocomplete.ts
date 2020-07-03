@@ -20,10 +20,11 @@ const URL_PATH_END_MARKER = "__url_path_end__";
 type CurContext = {
   method: string;
   token: Token | null;
-  otherTokenValues: Array<Token | null>;
+  otherTokenValues: string | Array<Token | null>;
   urlTokenPath: string[];
   urlParamsTokenPath: { [propname: string]: string }[];
   bodyTokenPath: string[];
+  requestStartRow?: number;
 };
 
 function _jsonToString(data: any, indent: boolean) {
@@ -52,7 +53,11 @@ const _getInitState = (tokenIter: any, startPos: Position, STATES: any) => {
   return state;
 };
 // 1,2
-const _handleBody = (tokenIter: any, startPos: Position, ret: any) => {
+const _handleBody = (
+  tokenIter: any,
+  startPos: Position,
+  _curContext: CurContext
+) => {
   const STATES = {
     looking_for_key: 0, // looking for a key without jumping over anything but white space and colon(冒号).
     looking_for_scope_start: 1, // skip everything until scope start
@@ -75,13 +80,15 @@ const _handleBody = (tokenIter: any, startPos: Position, ret: any) => {
     switch (curToken!.type) {
       case "variable":
         if (state === STATES.looking_for_key) {
-          ret.bodyTokenPath.unshift(curToken!.value.trim().replace(/"/g, ""));
+          _curContext.bodyTokenPath.unshift(
+            curToken!.value.trim().replace(/"/g, "")
+          );
         }
         state = STATES.looking_for_scope_start; // skip everything until the beginning of this scope
         break;
 
       case "paren.lparen":
-        ret.bodyTokenPath.unshift(curToken!.value);
+        _curContext.bodyTokenPath.unshift(curToken!.value);
         if (state === STATES.looking_for_scope_start) {
           // found it. go look for the relevant key
           state = STATES.looking_for_key;
@@ -135,7 +142,7 @@ const _handleBody = (tokenIter: any, startPos: Position, ret: any) => {
         } else if (state === STATES.looking_for_key) {
           state = STATES.looking_for_scope_start;
         }
-        ret.bodyTokenPath.unshift('"""');
+        _curContext.bodyTokenPath.unshift('"""');
         continue;
       case "string":
       case "constant.numeric":
@@ -160,9 +167,9 @@ const _handleBody = (tokenIter: any, startPos: Position, ret: any) => {
         break; // skip white space
     }
   }
-  if (walkedSomeBody && ret.bodyTokenPath.length === 0) {
+  if (walkedSomeBody && _curContext.bodyTokenPath.length === 0) {
     // we had some content and still no path -> the cursor is position after a closed body -> no auto complete
-    ret = null;
+    return false;
   }
 };
 // 4
@@ -178,7 +185,7 @@ const _getPreviousNoEmptyToken = (tokenIter: any) => {
   return curToken;
 };
 // 5
-const _handleUrlParamsToken = (tokenIter: any, ret: any) => {
+const _handleUrlParamsToken = (tokenIter: any, _curContext: CurContext) => {
   let curUrlPart: any;
   let curToken = tokenIter.getCurrentToken();
   while (curToken && isUrlParamsToken(curToken)) {
@@ -206,7 +213,7 @@ const _handleUrlParamsToken = (tokenIter: any, ret: any) => {
         break;
       case "url.amp":
       case "url.questionmark":
-        ret.urlParamsTokenPath.unshift(curUrlPart || {});
+        _curContext.urlParamsTokenPath.unshift(curUrlPart || {});
         curUrlPart = null;
         break;
     }
@@ -215,7 +222,11 @@ const _handleUrlParamsToken = (tokenIter: any, ret: any) => {
   return curToken;
 };
 // 6,7
-const _handleUrlPathToken = (tokenIter: any, ret: any, parser: any) => {
+const _handleUrlPathToken = (
+  tokenIter: any,
+  _curContext: CurContext,
+  parser: any
+) => {
   let curUrlPart: any;
   let curToken = tokenIter.getCurrentToken();
   while (curToken && isURLToken(curToken)) {
@@ -239,7 +250,7 @@ const _handleUrlPathToken = (tokenIter: any, ret: any, parser: any) => {
         break;
       case "url.slash":
         if (curUrlPart) {
-          ret.urlTokenPath.unshift(curUrlPart);
+          _curContext.urlTokenPath.unshift(curUrlPart);
           curUrlPart = null;
         }
         break;
@@ -248,69 +259,72 @@ const _handleUrlPathToken = (tokenIter: any, ret: any, parser: any) => {
   }
   if (curUrlPart) {
     // console.info("=>7");
-    ret.urlTokenPath.unshift(curUrlPart);
+    _curContext.urlTokenPath.unshift(curUrlPart);
   }
   return curToken;
 };
 // 8, 9
-const _addOtherAttrs = (ret: any) => {
+const _addOtherAttrs = (_curContext: CurContext) => {
   // if handle only url, the bodyTokenPath.length will always be empty
-  if (ret.bodyTokenPath.length === 0 && ret.urlParamsTokenPath.length === 0) {
+  if (
+    _curContext.bodyTokenPath.length === 0 &&
+    _curContext.urlParamsTokenPath.length === 0
+  ) {
     // console.info("=> 8");
-    if (ret.urlTokenPath.length > 0) {
+    if (_curContext.urlTokenPath.length > 0) {
       // started on the url, first token is current token
-      ret.otherTokenValues = ret.urlTokenPath[0];
+      _curContext.otherTokenValues = _curContext.urlTokenPath[0];
     }
   } else {
     // console.info("=> 9");
     // mark the url as completed.
-    ret.urlTokenPath.push(URL_PATH_END_MARKER);
+    _curContext.urlTokenPath.push(URL_PATH_END_MARKER);
   }
 };
 // 10
-const _addMethod = (tokenIter: any, ret: any) => {
+const _addMethod = (tokenIter: any, _curContext: CurContext) => {
   let curToken = tokenIter.getCurrentToken();
   // console.info("=> 10");
   if (curToken && isMethodToken(curToken)) {
-    ret.method = curToken.value;
+    _curContext.method = curToken.value;
   }
 };
 
 const _getUrlCurrentMethodAndTokenPaths = (
   tokenIter: any,
   parser: any,
-  ret: any
+  _curContext: any
 ) => {
   //------------- => 4 start ------------
   _getPreviousNoEmptyToken(tokenIter);
   //------------- => 4 done 5 start ------------
-  _handleUrlParamsToken(tokenIter, ret);
+  _handleUrlParamsToken(tokenIter, _curContext);
   //------------- => 5 end, 6/7 start ------------
-  _handleUrlPathToken(tokenIter, ret, parser);
+  _handleUrlPathToken(tokenIter, _curContext, parser);
   //------------- => 6/7 end 8/9 start ------------
-  _addOtherAttrs(ret);
+  _addOtherAttrs(_curContext);
   //------------- => 8/9 end 10 start ------------
-  _addMethod(tokenIter, ret);
-  return ret;
+  _addMethod(tokenIter, _curContext);
+  return _curContext;
 };
 
 const _getBodyCurrentMethodAndTokenPaths = (
   tokenIter: any,
   parser: any,
   startPos: Position,
-  ret: any
+  _curContext: CurContext
 ) => {
   // 1,2,6,7,9,10
-  _handleBody(tokenIter, startPos, ret);
-  if (!ret) {
+  const isValid = _handleBody(tokenIter, startPos, _curContext);
+  if (isValid === false) {
     // console.info("=> 3");
     return {};
   }
-  ret.requestStartRow = tokenIter.getCurrentPosition().lineNumber;
-  _handleUrlPathToken(tokenIter, ret, parser);
-  _addOtherAttrs(ret);
-  _addMethod(tokenIter, ret);
-  return ret;
+  _curContext.requestStartRow = tokenIter.getCurrentPosition().lineNumber;
+  _handleUrlPathToken(tokenIter, _curContext, parser);
+  _addOtherAttrs(_curContext);
+  _addMethod(tokenIter, _curContext);
+  return _curContext;
 };
 
 function _getCurrentMethodAndTokenPaths(
@@ -322,7 +336,7 @@ function _getCurrentMethodAndTokenPaths(
     editor,
     position: pos,
   });
-  const ret: CurContext = {
+  const _curContext: CurContext = {
     method: "",
     token: null,
     otherTokenValues: [],
@@ -334,8 +348,8 @@ function _getCurrentMethodAndTokenPaths(
   // 自动补全只有两种情况: 1. url 2.参数
   const isURL = curToken && isURLToken(curToken);
   return isURL
-    ? _getUrlCurrentMethodAndTokenPaths(tokenIter, parser, ret)
-    : _getBodyCurrentMethodAndTokenPaths(tokenIter, parser, pos, ret);
+    ? _getUrlCurrentMethodAndTokenPaths(tokenIter, parser, _curContext)
+    : _getBodyCurrentMethodAndTokenPaths(tokenIter, parser, pos, _curContext);
 }
 
 // eslint-disable-next-line
@@ -849,15 +863,21 @@ export default function ({
   }
   // main function to get path autocompletes
   function _addPathAutoCompleteSetToContext(context: any, pos: Position) {
-    const ret = _getCurrentMethodAndTokenPaths(editor, pos, parser);
-    context.method = ret.method;
-    context.token = ret.token;
-    context.otherTokenValues = ret.otherTokenValues;
-    context.urlTokenPath = ret.urlTokenPath;
+    const _curContext = _getCurrentMethodAndTokenPaths(editor, pos, parser);
+    context.method = _curContext.method;
+    context.token = _curContext.token;
+    context.otherTokenValues = _curContext.otherTokenValues;
+    context.urlTokenPath = _curContext.urlTokenPath;
     // get all candidates in this method
     const components = getTopLevelUrlCompleteComponents(context.method);
     // get and put valid cdds to context
-    populateContext(ret.urlTokenPath, context, editor, true, components);
+    populateContext(
+      _curContext.urlTokenPath,
+      context,
+      editor,
+      true,
+      components
+    );
     // before run next, the context.autoCompleteSet shoud be a valid array.
     context.autoCompleteSet = addMetaToTermsList(
       context.autoCompleteSet,
@@ -866,18 +886,18 @@ export default function ({
   }
 
   function addUrlParamsAutoCompleteSetToContext(context: any, pos: Position) {
-    const ret = _getCurrentMethodAndTokenPaths(editor, pos, parser);
-    context.method = ret.method;
-    context.otherTokenValues = ret.otherTokenValues;
-    context.urlTokenPath = ret.urlTokenPath;
-    if (!ret.urlTokenPath) {
+    const _curContext = _getCurrentMethodAndTokenPaths(editor, pos, parser);
+    context.method = _curContext.method;
+    context.otherTokenValues = _curContext.otherTokenValues;
+    context.urlTokenPath = _curContext.urlTokenPath;
+    if (!_curContext.urlTokenPath) {
       // zero length tokenPath is true
 
       return context;
     }
 
     populateContext(
-      ret.urlTokenPath,
+      _curContext.urlTokenPath,
       context,
       editor,
       false,
@@ -888,12 +908,12 @@ export default function ({
       return context;
     }
 
-    if (!ret.urlParamsTokenPath) {
+    if (!_curContext.urlParamsTokenPath) {
       // zero length tokenPath is true
       return context;
     }
     let tokenPath: any[] = [];
-    const currentParam = ret.urlParamsTokenPath.pop();
+    const currentParam = _curContext.urlParamsTokenPath.pop();
     if (currentParam) {
       tokenPath = Object.keys(currentParam); // single key object
       context.otherTokenValues = currentParam[tokenPath[0]];
@@ -910,26 +930,26 @@ export default function ({
   }
 
   function addBodyAutoCompleteSetToContext(context: any, pos: Position) {
-    const ret = _getCurrentMethodAndTokenPaths(editor, pos, parser);
-    context.method = ret.method;
-    context.otherTokenValues = ret.otherTokenValues;
-    context.urlTokenPath = ret.urlTokenPath;
-    context.requestStartRow = ret.requestStartRow;
-    if (ret.urlTokenPath.length === 0) {
+    const _curContext = _getCurrentMethodAndTokenPaths(editor, pos, parser);
+    context.method = _curContext.method;
+    context.otherTokenValues = _curContext.otherTokenValues;
+    context.urlTokenPath = _curContext.urlTokenPath;
+    context.requestStartRow = _curContext.requestStartRow;
+    if (_curContext.urlTokenPath.length === 0) {
       // zero length tokenPath is true
       return context;
     }
 
     populateContext(
-      ret.urlTokenPath,
+      _curContext.urlTokenPath,
       context,
       editor,
       false,
       getTopLevelUrlCompleteComponents(context.method)
     );
 
-    context.bodyTokenPath = ret.bodyTokenPath;
-    if (!ret.bodyTokenPath) {
+    context.bodyTokenPath = _curContext.bodyTokenPath;
+    if (!_curContext.bodyTokenPath) {
       // zero length tokenPath is true
 
       return context;
@@ -944,7 +964,13 @@ export default function ({
     } else {
       components = getUnmatchedEndpointComponents();
     }
-    populateContext(ret.bodyTokenPath, context, editor, true, components);
+    populateContext(
+      _curContext.bodyTokenPath,
+      context,
+      editor,
+      true,
+      components
+    );
 
     return context;
   }
