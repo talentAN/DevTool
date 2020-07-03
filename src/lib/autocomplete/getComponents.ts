@@ -8,7 +8,7 @@ import {
   TemplateAutocompleteComponent,
   UsernameAutocompleteComponent,
 } from "./components";
-import { API_Endpoints } from "../../mocks/API_Endpoints"; // fake api at the moment, we can use our own later
+import { API_Endpoints } from "../../utils/mocks/API_Endpoints"; // fake api at the moment, we can use our own later
 import Api from "./api";
 
 let ACTIVE_API: any = new (Api as any)(undefined, undefined);
