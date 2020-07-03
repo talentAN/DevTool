@@ -10,11 +10,11 @@
   - fn chain
     => register description
     => get Context
-      - method
-      - token
-      - otherTokenValues
-      - urlTokenPath
-    => get recommonded suggestions from description registered before;
+    - method
+    - token
+    - otherTokenValues
+    - urlTokenPath
+      => get recommonded suggestions from description registered before;
     - 本质上是把路径切割成一块一块, 然后用一棵树去进行分段查找
     - 自动补全要支持你输入的字符串不一定是开头, 要可以拼接, 所以要处理这个地方的查找会比较复杂.
       => replace
@@ -59,3 +59,15 @@
 
 - why autocomplete seperate to so many component
   - what's the difference and common
+
+```javascript
+type Ret = {
+  method: string,
+  token: any,
+  otherTokenValues: any,
+  urlTokenPath: any,
+  requestStartRow: any,
+  bodyTokenPath: any,
+  urlParamsTokenPath: any,
+};
+```

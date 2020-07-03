@@ -1,22 +1,3 @@
-/*
- * Licensed to Elasticsearch B.V. under one or more contributor
- * license agreements. See the NOTICE file distributed with
- * this work for additional information regarding copyright
- * ownership. Elasticsearch B.V. licenses this file to you under
- * the Apache License, Version 2.0 (the "License"); you may
- * not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing,
- * software distributed under the License is distributed on an
- * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- * KIND, either express or implied.  See the License for the
- * specific language governing permissions and limitations
- * under the License.
- */
-
 import _ from "lodash";
 import {
   getTopLevelUrlCompleteComponents,
@@ -24,97 +5,83 @@ import {
   getGlobalAutocompleteComponents,
   getUnmatchedEndpointComponents,
 } from "../kb/kb";
-
 import { populateContext } from "./engine";
 import { createTokenIterator } from "../factories";
-import { Position, Token, Range, CoreEditor } from "../../types";
-
+import { Position, Range, CoreEditor, Token } from "../../types";
+import {
+  isURLToken,
+  isUrlParamsToken,
+  isMethodToken,
+  isWhitespaceToken,
+} from "./Helper";
 let lastEvaluatedToken: any = null;
 const URL_PATH_END_MARKER = "__url_path_end__";
 
-function jsonToString(data: any, indent: boolean) {
+type CurContext = {
+  method: string;
+  token: Token | null;
+  otherTokenValues: Array<Token | null>;
+  urlTokenPath: string[];
+  urlParamsTokenPath: { [propname: string]: string }[];
+  bodyTokenPath: string[];
+};
+
+function _jsonToString(data: any, indent: boolean) {
   return JSON.stringify(data, null, indent ? 2 : 0);
 }
-function isUrlParamsToken(token: any) {
-  switch ((token || {}).type) {
-    case "url.param":
-    case "url.equal":
-    case "url.value":
-    case "url.questionmark":
-    case "url.amp":
-      return true;
-    default:
-      return false;
-  }
-}
 
-/**
- * Get the method and token paths for a specific position in the current editor buffer.
- *
- * This function can be used for getting autocomplete information or for getting more information
- * about the endpoint associated with autocomplete. In future, these concerns should be better
- * separated.
- *
- */
-function _getCurrentMethodAndTokenPaths(
-  editor: CoreEditor,
-  pos: Position,
-  parser: any,
-  forceEndOfUrl?: boolean /* Flag for indicating whether we want to avoid early escape optimization. */
-) {
-  // tokenIter is:  { tokenLineCache:{ { type: method, value, postion}, { type:whiteSpace, ....}, { type:url.part, ...}}, ... }
-  const tokenIter = createTokenIterator({
-    editor,
-    position: pos,
-  });
-  const startPos = pos;
-  let bodyTokenPath: any = [];
-  const ret: any = {};
-
-  const STATES = {
-    looking_for_key: 0, // looking for a key but without jumping over anything but white space and colon.
-    looking_for_scope_start: 1, // skip everything until scope start
-    start: 3,
-  };
+// splited logics
+const _getInitState = (tokenIter: any, startPos: Position, STATES: any) => {
+  let curToken = tokenIter.getCurrentToken();
   let state = STATES.start;
-
-  // t is: {postion, type:'url.part', value:"lalall"} => initialization problems
-  let t = tokenIter.getCurrentToken();
-  // handle if t not exists or the postion is first line
-  if (t) {
+  // handle if curToken not exists or the postion is first line
+  if (curToken) {
     if (startPos.column === 1) {
       // if we are at the beginning of the line, the current token is the one after cursor, not before which
       // deviates from the standard.
-      t = tokenIter.stepBackward();
+      curToken = tokenIter.stepBackward();
       state = STATES.looking_for_scope_start;
     }
   } else {
     if (startPos.column === 1) {
       // empty lines do no have tokens, move one back
-      t = tokenIter.stepBackward();
+      curToken = tokenIter.stepBackward();
       state = STATES.start;
     }
   }
+  return state;
+};
+// 1,2
+const _handleBody = (tokenIter: any, startPos: Position, ret: any) => {
+  const STATES = {
+    looking_for_key: 0, // looking for a key without jumping over anything but white space and colon(冒号).
+    looking_for_scope_start: 1, // skip everything until scope start
+    start: 3,
+  };
+  let state = _getInitState(tokenIter, startPos, STATES);
+  let curToken = tokenIter.getCurrentToken();
   let walkedSomeBody = false;
   // climb one scope at a time and get the scope key
   for (
     ;
-    t && t.type.indexOf("url") === -1 && t.type !== "method";
-    t = tokenIter.stepBackward()
+    curToken && !isURLToken(curToken) && !isMethodToken(curToken);
+    curToken = tokenIter.stepBackward()
   ) {
-    if (t.type !== "whitespace") {
+    // console.info("=> 1");
+    if (!isWhitespaceToken(curToken)) {
       walkedSomeBody = true;
     } // marks we saw something
-    switch (t.type) {
+    // console.info("=> 2");
+    switch (curToken!.type) {
       case "variable":
         if (state === STATES.looking_for_key) {
-          bodyTokenPath.unshift(t.value.trim().replace(/"/g, ""));
+          ret.bodyTokenPath.unshift(curToken!.value.trim().replace(/"/g, ""));
         }
         state = STATES.looking_for_scope_start; // skip everything until the beginning of this scope
         break;
 
       case "paren.lparen":
-        bodyTokenPath.unshift(t.value);
+        ret.bodyTokenPath.unshift(curToken!.value);
         if (state === STATES.looking_for_scope_start) {
           // found it. go look for the relevant key
           state = STATES.looking_for_key;
@@ -125,9 +92,9 @@ function _getCurrentMethodAndTokenPaths(
         state = STATES.looking_for_scope_start;
         // and ignore this sub scope..
         let parenCount = 1;
-        t = tokenIter.stepBackward();
-        while (t && parenCount > 0) {
-          switch (t.type) {
+        curToken = tokenIter.stepBackward();
+        while (curToken && parenCount > 0) {
+          switch (curToken.type) {
             case "paren.lparen":
               parenCount--;
               break;
@@ -136,25 +103,29 @@ function _getCurrentMethodAndTokenPaths(
               break;
           }
           if (parenCount > 0) {
-            t = tokenIter.stepBackward();
+            curToken = tokenIter.stepBackward();
           }
         }
-        if (!t) {
-          // oops we run out.. we don't know what's up return null;
+        if (!curToken) {
+          // oops we run out.. we don'curToken know what's up return null;
           return {};
         }
         continue;
       case "punctuation.end_triple_quote":
         // reset the search for key
         state = STATES.looking_for_scope_start;
-        for (t = tokenIter.stepBackward(); t; t = tokenIter.stepBackward()) {
-          if (t.type === "punctuation.start_triple_quote") {
-            t = tokenIter.stepBackward();
+        for (
+          curToken = tokenIter.stepBackward();
+          curToken;
+          curToken = tokenIter.stepBackward()
+        ) {
+          if (curToken.type === "punctuation.start_triple_quote") {
+            curToken = tokenIter.stepBackward();
             break;
           }
         }
-        if (!t) {
-          // oops we run out.. we don't know what's up return null;
+        if (!curToken) {
+          // oops we run out.. we don'curToken know what's up return null;
           return {};
         }
         continue;
@@ -164,7 +135,7 @@ function _getCurrentMethodAndTokenPaths(
         } else if (state === STATES.looking_for_key) {
           state = STATES.looking_for_scope_start;
         }
-        bodyTokenPath.unshift('"""');
+        ret.bodyTokenPath.unshift('"""');
         continue;
       case "string":
       case "constant.numeric":
@@ -175,7 +146,6 @@ function _getCurrentMethodAndTokenPaths(
         } else if (state === STATES.looking_for_key) {
           state = STATES.looking_for_scope_start;
         }
-
         break;
       case "punctuation.comma":
         if (state === STATES.start) {
@@ -190,54 +160,36 @@ function _getCurrentMethodAndTokenPaths(
         break; // skip white space
     }
   }
-  if (
-    walkedSomeBody &&
-    (!bodyTokenPath || bodyTokenPath.length === 0) &&
-    !forceEndOfUrl
-  ) {
+  if (walkedSomeBody && ret.bodyTokenPath.length === 0) {
     // we had some content and still no path -> the cursor is position after a closed body -> no auto complete
-    return {};
+    ret = null;
   }
-
-  ret.urlTokenPath = [];
-  if (tokenIter.getCurrentPosition().lineNumber === startPos.lineNumber) {
-    if (
-      t &&
-      (t.type === "url.part" ||
-        t.type === "url.param" ||
-        t.type === "url.value")
-    ) {
-      // we are forcing the end of the url for the purposes of determining an endpoint
-      if (forceEndOfUrl && t.type === "url.part") {
-        ret.urlTokenPath.push(t.value);
-        ret.urlTokenPath.push(URL_PATH_END_MARKER);
-      }
-      // we are on the same line as cursor and dealing with a url. Current token is not part of the context
-      t = tokenIter.stepBackward();
-      // This will force method parsing
-      while (t!.type === "whitespace") {
-        t = tokenIter.stepBackward();
-      }
-      // here t change to { type: method, value:GET, postion:{} }
+};
+// 4
+const _getPreviousNoEmptyToken = (tokenIter: any) => {
+  let curToken = tokenIter.getCurrentToken();
+  if (curToken && isURLToken(curToken)) {
+    // console.info("=>4");
+    curToken = tokenIter.stepBackward();
+    while (isWhitespaceToken(curToken!)) {
+      curToken = tokenIter.stepBackward();
     }
-    bodyTokenPath = null; // no not on a body line.
   }
-
-  ret.bodyTokenPath = bodyTokenPath;
-
-  ret.urlParamsTokenPath = null;
-  ret.requestStartRow = tokenIter.getCurrentPosition().lineNumber;
+  return curToken;
+};
+// 5
+const _handleUrlParamsToken = (tokenIter: any, ret: any) => {
   let curUrlPart: any;
-
-  while (t && isUrlParamsToken(t)) {
-    switch (t.type) {
+  let curToken = tokenIter.getCurrentToken();
+  while (curToken && isUrlParamsToken(curToken)) {
+    switch (curToken.type) {
       case "url.value":
         if (Array.isArray(curUrlPart)) {
-          curUrlPart.unshift(t.value);
+          curUrlPart.unshift(curToken.value);
         } else if (curUrlPart) {
-          curUrlPart = [t.value, curUrlPart];
+          curUrlPart = [curToken.value, curUrlPart];
         } else {
-          curUrlPart = t.value;
+          curUrlPart = curToken.value;
         }
         break;
       case "url.comma":
@@ -250,30 +202,32 @@ function _getCurrentMethodAndTokenPaths(
       case "url.param":
         const v = curUrlPart;
         curUrlPart = {};
-        curUrlPart[t.value] = v;
+        curUrlPart[curToken.value] = v;
         break;
       case "url.amp":
       case "url.questionmark":
-        if (!ret.urlParamsTokenPath) {
-          ret.urlParamsTokenPath = [];
-        }
         ret.urlParamsTokenPath.unshift(curUrlPart || {});
         curUrlPart = null;
         break;
     }
-    t = tokenIter.stepBackward();
+    curToken = tokenIter.stepBackward();
   }
-
-  curUrlPart = null;
-  while (t && t.type.indexOf("url") !== -1) {
-    switch (t.type) {
+  return curToken;
+};
+// 6,7
+const _handleUrlPathToken = (tokenIter: any, ret: any, parser: any) => {
+  let curUrlPart: any;
+  let curToken = tokenIter.getCurrentToken();
+  while (curToken && isURLToken(curToken)) {
+    // console.info("=> 6", curToken.type);
+    switch (curToken.type) {
       case "url.part":
         if (Array.isArray(curUrlPart)) {
-          curUrlPart.unshift(t.value);
+          curUrlPart.unshift(curToken.value);
         } else if (curUrlPart) {
-          curUrlPart = [t.value, curUrlPart];
+          curUrlPart = [curToken.value, curUrlPart];
         } else {
-          curUrlPart = t.value;
+          curUrlPart = curToken.value;
         }
         break;
       case "url.comma":
@@ -290,27 +244,98 @@ function _getCurrentMethodAndTokenPaths(
         }
         break;
     }
-    t = parser.prevNonEmptyToken(tokenIter);
+    curToken = parser.prevNonEmptyToken(tokenIter);
   }
-
   if (curUrlPart) {
+    // console.info("=>7");
     ret.urlTokenPath.unshift(curUrlPart);
   }
-
-  if (!ret.bodyTokenPath && !ret.urlParamsTokenPath) {
+  return curToken;
+};
+// 8, 9
+const _addOtherAttrs = (ret: any) => {
+  // if handle only url, the bodyTokenPath.length will always be empty
+  if (ret.bodyTokenPath.length === 0 && ret.urlParamsTokenPath.length === 0) {
+    // console.info("=> 8");
     if (ret.urlTokenPath.length > 0) {
-      //   // started on the url, first token is current token
+      // started on the url, first token is current token
       ret.otherTokenValues = ret.urlTokenPath[0];
     }
   } else {
+    // console.info("=> 9");
     // mark the url as completed.
     ret.urlTokenPath.push(URL_PATH_END_MARKER);
   }
-
-  if (t && t.type === "method") {
-    ret.method = t.value;
+};
+// 10
+const _addMethod = (tokenIter: any, ret: any) => {
+  let curToken = tokenIter.getCurrentToken();
+  // console.info("=> 10");
+  if (curToken && isMethodToken(curToken)) {
+    ret.method = curToken.value;
   }
+};
+
+const _getUrlCurrentMethodAndTokenPaths = (
+  tokenIter: any,
+  parser: any,
+  ret: any
+) => {
+  //------------- => 4 start ------------
+  _getPreviousNoEmptyToken(tokenIter);
+  //------------- => 4 done 5 start ------------
+  _handleUrlParamsToken(tokenIter, ret);
+  //------------- => 5 end, 6/7 start ------------
+  _handleUrlPathToken(tokenIter, ret, parser);
+  //------------- => 6/7 end 8/9 start ------------
+  _addOtherAttrs(ret);
+  //------------- => 8/9 end 10 start ------------
+  _addMethod(tokenIter, ret);
   return ret;
+};
+
+const _getBodyCurrentMethodAndTokenPaths = (
+  tokenIter: any,
+  parser: any,
+  startPos: Position,
+  ret: any
+) => {
+  // 1,2,6,7,9,10
+  _handleBody(tokenIter, startPos, ret);
+  if (!ret) {
+    // console.info("=> 3");
+    return {};
+  }
+  ret.requestStartRow = tokenIter.getCurrentPosition().lineNumber;
+  _handleUrlPathToken(tokenIter, ret, parser);
+  _addOtherAttrs(ret);
+  _addMethod(tokenIter, ret);
+  return ret;
+};
+
+function _getCurrentMethodAndTokenPaths(
+  editor: CoreEditor,
+  pos: Position,
+  parser: any
+) {
+  const tokenIter = createTokenIterator({
+    editor,
+    position: pos,
+  });
+  const ret: CurContext = {
+    method: "",
+    token: null,
+    otherTokenValues: [],
+    urlTokenPath: [],
+    urlParamsTokenPath: [],
+    bodyTokenPath: [],
+  };
+  let curToken = tokenIter.getCurrentToken();
+  // 自动补全只有两种情况: 1. url 2.参数
+  const isURL = curToken && isURLToken(curToken);
+  return isURL
+    ? _getUrlCurrentMethodAndTokenPaths(tokenIter, parser, ret)
+    : _getBodyCurrentMethodAndTokenPaths(tokenIter, parser, pos, ret);
 }
 
 // eslint-disable-next-line
@@ -378,7 +403,7 @@ export default function ({
       if (term.template.__raw && term.template.value) {
         indentedTemplateLines = term.template.value.split("\n");
       } else {
-        indentedTemplateLines = jsonToString(term.template, true).split("\n");
+        indentedTemplateLines = _jsonToString(term.template, true).split("\n");
       }
       let currentIndentation = editor.getLineValue(
         context.rangeToReplace.start.lineNumber
@@ -824,14 +849,6 @@ export default function ({
   }
   // main function to get path autocompletes
   function _addPathAutoCompleteSetToContext(context: any, pos: Position) {
-    // here ret is
-    //  {
-    //   bodyTokenPath: null,
-    //   method: "POST",
-    //   requestStartRow: 8,
-    //   urlParamsTokenPath: null,
-    //   urlTokenPath: [],
-    // }
     const ret = _getCurrentMethodAndTokenPaths(editor, pos, parser);
     context.method = ret.method;
     context.token = ret.token;
@@ -898,7 +915,7 @@ export default function ({
     context.otherTokenValues = ret.otherTokenValues;
     context.urlTokenPath = ret.urlTokenPath;
     context.requestStartRow = ret.requestStartRow;
-    if (!ret.urlTokenPath) {
+    if (ret.urlTokenPath.length === 0) {
       // zero length tokenPath is true
       return context;
     }

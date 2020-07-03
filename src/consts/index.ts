@@ -14,10 +14,7 @@ POST _aliases
 
 POST _add
 {
-  "a": {
-    "e": "b",
-    "f": "c"
-  }
+
 }
 
 PUT delete

@@ -17,7 +17,7 @@
  * under the License.
  */
 
-import { Position } from './core_editor';
+import { Position } from "./core_editor";
 
 export interface Token {
   /**
@@ -37,4 +37,20 @@ export interface Token {
    * The position of the first character of the token.
    */
   position: Position;
+}
+
+enum TokenType {
+  "variable" = "variable",
+  "whitespace" = "whitespace",
+  "paren.lparen" = "paren.lparen", // (左括号)
+  "paren.rparen" = "paren.rparen", // (右括号)
+  // (punctuation: 标点符号
+  "punctuation.start_triple_quote" = "punctuation.start_triple_quote", // (引用开始)
+  "punctuation.end_triple_quote" = "punctuation.end_triple_quote", // (引用结束)
+  "punctuation.comma" = "punctuation.comma", // (逗号)
+  "punctuation.colon" = "punctuation.colon", // (冒号)
+  "string" = "string",
+  "constant.numeric" = "constant.numeric",
+  "constant.language.boolean" = "constant.language.boolean",
+  "text" = "text",
 }
