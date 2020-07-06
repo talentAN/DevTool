@@ -19,10 +19,10 @@ const isNotAnIndexName = (name: string[] | string): boolean =>
 const _idAutocompleteComponentFactory = (name: string, parent: any) => {
   return new IdAutocompleteComponent(name, parent);
 };
-/**
- *  url path解析是支持变量的, 但有些变量是共通的(比如indices, 就是一串数字), 不需要每个path单独注册的, 我们把相应的默认值放在这个函数里面
- *
- */
+
+// url path解析是支持变量的;
+// 有些变量是共通的(比如indices, 就是一串数字), 不需要每个path单独注册的;
+// 我们把相应的默认值放在这个函数里面
 const _parametrizedComponentFactories = {
   getComponent: function (name: string, parent: any, provideDefault: any) {
     if (this[name]) {
@@ -137,10 +137,10 @@ function loadApisFromJson(
   forEach(json, function (apiJson: any, name: string) {
     names.unshift(name);
     // FIXME: global autocomplete seem useless for us, pay attention to this later;
-    // _.each(apiJson.globals || {}, function (globalJson, globalName) {
-    //   console.info("xxx", globalName, globalJson);
-    //   api.addGlobalAutocompleteRules(globalName, globalJson);
-    // });
+    forEach(apiJson.globals || {}, function (globalJson, globalName) {
+      // console.info("xxx", globalName, globalJson);
+      api.addGlobalAutocompleteRules(globalName, globalJson);
+    });
     forEach(apiJson.endpoints || {}, function (
       endpointJson: any,
       endpointName: string
@@ -151,5 +151,5 @@ function loadApisFromJson(
   api.name = names.join(",");
   return api;
 }
-// add autocomplete components to apis
+// register autocomplete components to apis
 ACTIVE_API = loadApisFromJson(API_Endpoints);

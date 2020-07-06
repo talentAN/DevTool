@@ -537,12 +537,9 @@ export default function ({
    */
   function _getAutoCompleteType(pos: Position): string | null {
     let rowMode = parser.getRowParseMode();
-    console.info('xxx', rowMode)
-    // eslint-disable-next-line no-bitwise
     if (rowMode & parser.MODE.IN_REQUEST) {
       return "body";
     }
-    // eslint-disable-next-line no-bitwise
     if (rowMode & parser.MODE.REQUEST_START) {
       // on url path, url params or method.
       const tokenIter = createTokenIterator({
@@ -585,7 +582,6 @@ export default function ({
     }
 
     // after start to avoid single line url only requests
-    // eslint-disable-next-line no-bitwise
     if (rowMode & parser.MODE.REQUEST_END) {
       return "body";
     }
@@ -606,7 +602,7 @@ export default function ({
       // o.w suggest a method
       return "method";
     }
-    console.info('Invalid')
+    console.info("Invalid");
     return null;
   }
 

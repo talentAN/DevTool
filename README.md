@@ -2,10 +2,10 @@
 
 - main concepts:
   - token
-  -
 - main classes
   - Autocomplete
   - RowParser
+  - **Component
 - main functions:
   - custom actions
   - smart

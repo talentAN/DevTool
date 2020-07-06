@@ -2,16 +2,15 @@ import { CoreEditor, Token } from "../../types";
 import { TokenIterator } from "./token_iterator";
 
 // 用位运算进行校验, 比if else之类的方便超级多
-// 通常来讲, &运算用于校验权限, | 运算用来赋予权限
+// &运算用于校验权限, | 运算用来赋予权限
 const MODE = {
   REQUEST_START: 2,
   IN_REQUEST: 4,
-  MULTI_DOC_CUR_DOC_END: 8, // 我理解是一个post路径带着多个不同的参数请求, 待验证
+  MULTI_DOC_CUR_DOC_END: 8, // 一个post路径带着多个不同的参数请求, 待验证
   REQUEST_END: 16,
   BETWEEN_REQUESTS: 32,
 };
 
-// eslint-disable-next-line import/no-default-export
 export default class RowParser {
   MODE = MODE;
   constructor(private readonly editor: CoreEditor) {}

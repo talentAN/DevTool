@@ -1,7 +1,5 @@
 import _ from "lodash";
 import foreach from "lodash.foreach";
-// NOTE: If this value ever changes to be a few seconds or less, it might introduce flakiness
-// due to timing issues in our app.js tests.
 
 let perIndexTypes = {};
 let perAliasIndexes = [];
@@ -109,6 +107,7 @@ export function getTypes(indices) {
 }
 // in use
 export function getIndices(includeAliases) {
+  console.info('xxx')
   const ret = [];
   foreach(perIndexTypes, function (index) {
     ret.push(index);
