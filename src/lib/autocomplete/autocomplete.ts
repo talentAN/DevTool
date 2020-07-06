@@ -342,7 +342,6 @@ function _getCurrentMethodAndTokenPaths(
     : _getBodyCurrentMethodAndTokenPaths(tokenIter, parser, pos, _curContext);
 }
 
-// eslint-disable-next-line
 export default function ({
   editor,
   parser,
@@ -538,7 +537,7 @@ export default function ({
    */
   function _getAutoCompleteType(pos: Position): string | null {
     let rowMode = parser.getRowParseMode();
-
+    console.info('xxx', rowMode)
     // eslint-disable-next-line no-bitwise
     if (rowMode & parser.MODE.IN_REQUEST) {
       return "body";
@@ -607,7 +606,7 @@ export default function ({
       // o.w suggest a method
       return "method";
     }
-
+    console.info('Invalid')
     return null;
   }
 
@@ -1036,7 +1035,6 @@ export default function ({
     }
   }
 
-  // TODO: why useless prefix in this
   function getCompletions(
     position: Position,
     prefix: string,

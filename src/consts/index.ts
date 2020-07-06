@@ -11,8 +11,6 @@ POST _aliases
     }
   ]
 }
-
-POST _add
 {
 
 }
@@ -58,3 +56,5 @@ PUT delete
 `;
 
 export const METHODS = ["HEAD", "GET", "PUT", "POST", "DELETE"];
+
+export const INTERVAL = 25;

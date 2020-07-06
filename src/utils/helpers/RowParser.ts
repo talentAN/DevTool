@@ -1,73 +1,48 @@
 import { CoreEditor, Token } from "../../types";
 import { TokenIterator } from "./token_iterator";
 
-export const MODE = {
+// 用位运算进行校验, 比if else之类的方便超级多
+// 通常来讲, &运算用于校验权限, | 运算用来赋予权限
+const MODE = {
   REQUEST_START: 2,
   IN_REQUEST: 4,
-  MULTI_DOC_CUR_DOC_END: 8,
+  MULTI_DOC_CUR_DOC_END: 8, // 我理解是一个post路径带着多个不同的参数请求, 待验证
   REQUEST_END: 16,
   BETWEEN_REQUESTS: 32,
 };
 
 // eslint-disable-next-line import/no-default-export
 export default class RowParser {
-  constructor(private readonly editor: CoreEditor) {}
   MODE = MODE;
+  constructor(private readonly editor: CoreEditor) {}
+
   getRowParseMode(lineNumber = this.editor.getCurrentPosition().lineNumber) {
     const linesCount = this.editor.getLineCount();
-    if (lineNumber > linesCount || lineNumber < 1) {
+    const mode = this.editor.getLineState(lineNumber);
+    const isOutOfRange = lineNumber > linesCount || lineNumber < 1 || !mode;
+    if (isOutOfRange) {
       return MODE.BETWEEN_REQUESTS;
     }
-    const mode = this.editor.getLineState(lineNumber);
-    if (!mode) {
-      return MODE.BETWEEN_REQUESTS;
-    } // shouldn't really happen
-
-    // If another "start" mode is added here because we want to allow for new language highlighting
-    // please see https://github.com/elastic/kibana/pull/51446 for a discussion on why
-    // should consider a different approach.
+    // when will get "start-sql"?
     if (mode !== "start" && mode !== "start-sql") {
       return MODE.IN_REQUEST;
     }
     let line = (this.editor.getLineValue(lineNumber) || "").trim();
-    if (!line || line[0] === "#") {
+    // empty line or a comment waiting for a new req to start
+    let isEmptyLine = !line || line[0] === "#";
+    if (isEmptyLine) {
       return MODE.BETWEEN_REQUESTS;
-    } // empty line or a comment waiting for a new req to start
-
+    }
+    // check for a multi doc request (must start a new json doc immediately after this one end.
     if (line.indexOf("}", line.length - 1) >= 0) {
-      // check for a multi doc request (must start a new json doc immediately after this one end.
-      lineNumber++;
-      if (lineNumber < linesCount + 1) {
-        line = (this.editor.getLineValue(lineNumber) || "").trim();
-        if (line.indexOf("{") === 0) {
-          // next line is another doc in a multi doc
-          // eslint-disable-next-line no-bitwise
-          return MODE.MULTI_DOC_CUR_DOC_END | MODE.IN_REQUEST;
-        }
-      }
-      // eslint-disable-next-line no-bitwise
-      return MODE.REQUEST_END | MODE.MULTI_DOC_CUR_DOC_END; // end of request
+      return _handleEndOfParams.call(this, lineNumber, linesCount);
     }
-
     // check for single line requests
-    lineNumber++;
-    if (lineNumber >= linesCount + 1) {
-      // eslint-disable-next-line no-bitwise
-      return MODE.REQUEST_START | MODE.REQUEST_END;
-    }
-    line = (this.editor.getLineValue(lineNumber) || "").trim();
-    if (line.indexOf("{") !== 0) {
-      // next line is another request
-      // eslint-disable-next-line no-bitwise
-      return MODE.REQUEST_START | MODE.REQUEST_END;
-    }
-
-    return MODE.REQUEST_START;
+    return _handleSingleLineRequest.call(this, lineNumber, linesCount);
   }
 
   rowPredicate(lineNumber: number | undefined, editor: CoreEditor, value: any) {
-    const mode = this.getRowParseMode(lineNumber);
-    // eslint-disable-next-line no-bitwise
+    const mode: number = this.getRowParseMode(lineNumber);
     return (mode & value) > 0;
   }
 
@@ -139,4 +114,30 @@ export default class RowParser {
       t = tokenIter.stepBackward();
     return t;
   }
+}
+
+function _handleEndOfParams(lineNumber: number, linesCount: number): number {
+  lineNumber++;
+  if (lineNumber <= linesCount) {
+    let line = (this.editor.getLineValue(lineNumber) || "").trim();
+    // next line is another doc in a multi doc
+    if (line.indexOf("{") === 0) {
+      return MODE.MULTI_DOC_CUR_DOC_END | MODE.IN_REQUEST;
+    }
+  }
+  return MODE.REQUEST_END | MODE.MULTI_DOC_CUR_DOC_END; // end of request
+}
+function _handleSingleLineRequest(
+  lineNumber: number,
+  linesCount: number
+): number {
+  lineNumber++;
+  if (lineNumber >= linesCount + 1) {
+    return MODE.REQUEST_START | MODE.REQUEST_END;
+  }
+  const line = (this.editor.getLineValue(lineNumber) || "").trim();
+  if (line.indexOf("{") !== 0) {
+    return MODE.REQUEST_START | MODE.REQUEST_END;
+  }
+  return MODE.REQUEST_START;
 }

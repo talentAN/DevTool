@@ -20,7 +20,7 @@ import {
   AutoCompleterFunction,
 } from "../types";
 import Autocomplete from "../lib/autocomplete/autocomplete";
-import { INTERVAL } from "../utils/Consts";
+import { INTERVAL } from "../consts";
 import {
   formatRequestBodyDoc,
   textFromRequest,
