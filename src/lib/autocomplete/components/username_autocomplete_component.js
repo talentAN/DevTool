@@ -17,7 +17,7 @@
  * under the License.
  */
 import _ from 'lodash';
-import { getIndices } from '../../mappings/mappings';
+import { getIndices } from '../Helper';
 import { ListComponent } from './list_component';
 function nonValidUsernameType(token) {
   return token[0] === '_';

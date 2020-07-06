@@ -695,10 +695,10 @@ export default function ({
     // console.info(`=> get ${context.autoCompleteType} auto complete`);
     switch (context.autoCompleteType) {
       case "path":
-        addPathPrefixSuffixToContext(context);
+        _addPathPrefixSuffixToContext(context);
         break;
       case "url_params":
-        addUrlParamsPrefixSuffixToContext(context);
+        _addUrlParamsPrefixSuffixToContext(context);
         break;
       case "method":
         addMethodPrefixSuffixToContext(context);
@@ -811,7 +811,7 @@ export default function ({
     return context;
   }
 
-  function addUrlParamsPrefixSuffixToContext(context: any) {
+  function _addUrlParamsPrefixSuffixToContext(context: any) {
     context.prefixToAdd = "";
     context.suffixToAdd = "";
   }
@@ -832,7 +832,7 @@ export default function ({
     }
   }
 
-  function addPathPrefixSuffixToContext(context: any) {
+  function _addPathPrefixSuffixToContext(context: any) {
     context.prefixToAdd = "";
     context.suffixToAdd = "";
   }
