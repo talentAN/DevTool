@@ -18,19 +18,19 @@ import {
   TokensProvider,
   EditorEvent,
   AutoCompleterFunction,
-} from "../types";
-import Autocomplete from "../autocomplete/autocomplete";
+} from "./types";
+import Autocomplete from "./autocomplete/autocomplete";
 import { INTERVAL } from "../consts";
 import {
   formatRequestBodyDoc,
   textFromRequest,
-} from "../utils/helpers/ContentFormatters";
-import { detectCURL, parseCURL } from "../utils/helpers/Curl";
-import { smartResize } from "../utils/helpers/Editor";
-import { AceTokensProvider } from "../utils/helpers/token_provider";
-import { createTokenIterator } from "../utils/helpers/token_iterator";
-import { collapseLiteralStrings } from "../utils/helpers/ContentFormatters";
-import RowParser from "../utils/helpers/RowParser";
+} from "./utils/helpers/ContentFormatters";
+import { detectCURL, parseCURL } from "./utils/helpers/Curl";
+import { smartResize } from "./utils/helpers/Editor";
+import { AceTokensProvider } from "./utils/helpers/token_provider";
+import { createTokenIterator } from "./utils/helpers/token_iterator";
+import { collapseLiteralStrings } from "./utils/helpers/ContentFormatters";
+import RowParser from "./utils/helpers/RowParser";
 import * as InputMode from "./mode/input";
 const _AceRange = ace.acequire("ace/range").Range;
 

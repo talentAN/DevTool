@@ -1,5 +1,5 @@
 import { Editor as IAceEditor } from "brace";
-import { smartResize } from "../utils/helpers/Editor";
+import { smartResize } from "./utils/helpers/Editor";
 
 // @ts-ignore
 import * as InputMode from "./mode/input";

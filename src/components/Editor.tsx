@@ -3,7 +3,7 @@ import { makeStyles } from "@material-ui/styles";
 import { create } from "../editor-core";
 import * as CONSTS from "../consts";
 import Actions from "./Actions";
-import { debounce } from "../utils/helpers/PureFns";
+import { debounce } from "../editor-core/utils/helpers/PureFns";
 import "./DevTool.scss";
 
 const inputId = "ConAppInputTextarea";
