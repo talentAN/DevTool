@@ -1,1 +1,1 @@
-export const a = "a";
+export const INTERVAL = 25;

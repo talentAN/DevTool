@@ -1,9 +1,9 @@
-// brace is a very powerful eidtor base on ace while its apis are also complex.
-// So we wrappe some apis which are frequently used, it'll be better for us to use them.
+// brace is a very powerful eidtor base on ace while its apis are complex enough.
+// So we wrappe some apis which are frequently used.
 
 // Those apis are basicly for get eidtor's status and content we need.
 // After get contents, we need to get standard request in json or curl format.
-// So wo define other methods base on these wrappers to operat request
+// So wo define other methods base on these wrappers to operate request
 
 import ace, {
   Editor as IAceEditor,
@@ -20,8 +20,12 @@ import {
   AutoCompleterFunction,
 } from "../types";
 import Autocomplete from "../lib/autocomplete/autocomplete";
-import * as utils from "../utils/helpers/ContentFormatters";
-import * as curl from "../utils/helpers/Curl";
+import { INTERVAL } from "../utils/Consts";
+import {
+  formatRequestBodyDoc,
+  textFromRequest,
+} from "../utils/helpers/ContentFormatters";
+import { detectCURL, parseCURL } from "../utils/helpers/Curl";
 import { smartResize } from "../utils/helpers/Editor";
 import { AceTokensProvider } from "../utils/helpers/token_provider";
 import { createTokenIterator } from "../utils/helpers/token_iterator";
@@ -39,7 +43,7 @@ export class MilvusEditor implements CoreEditor {
 
   constructor(private readonly editor: IAceEditor) {
     this.editor.setShowPrintMargin(false);
-    // init Editor style, if we want support other style later, could move these in other file
+    // init Editor style, if we want support other style later, could move these in other config files
     const session = this.editor.getSession();
     session.setMode(new InputMode.Mode() as any);
     (session as any).setFoldStyle("markbeginend");
@@ -49,7 +53,7 @@ export class MilvusEditor implements CoreEditor {
     // Keep current top line in view when resizing to avoid losing user context
     this.resize = smartResize(this.editor);
 
-    // We want it to be formatted to standard json automaticly when paste a curl string on editor.
+    // We want it to be formatted to standard json automaticly when paste a curl request on editor.
     // So we intercept ace on paste handler.
     this._aceOnPaste = this.editor.onPaste;
     this.editor.onPaste = this._formatPaste.bind(this);
@@ -77,15 +81,13 @@ export class MilvusEditor implements CoreEditor {
   waitForLatestTokens(): Promise<void> {
     return new Promise((resolve) => {
       const session = this.editor.getSession();
-      const checkInterval = 25;
-
       const check = () => {
         // If the bgTokenizer doesn't exist, we can assume that the underlying editor has been
         // turn down, e.g. by closing the History tab, and we don't need to do anything further.
         if (session.bgTokenizer) {
           // Wait until the bgTokenizer is done running before executing the callback.
           if ((session.bgTokenizer as any).running) {
-            setTimeout(check, checkInterval);
+            setTimeout(check, INTERVAL);
           } else {
             resolve();
           }
@@ -279,8 +281,8 @@ export class MilvusEditor implements CoreEditor {
   // eslint-disable-next-line @typescript-eslint/camelcase
   // if we past a curl string, it will be parsed to JSON automaticly, if we don't want this function, just rm code in if
   private _formatPaste(text: string) {
-    if (text && curl.detectCURL(text)) {
-      const curlInput = curl.parseCURL(text);
+    if (text && detectCURL(text)) {
+      const curlInput = parseCURL(text);
       this.editor.insert(curlInput);
       return;
     }
@@ -379,7 +381,7 @@ export class MilvusEditor implements CoreEditor {
     if (this.currentReqRange) {
       this.currentReqRange.markerRef = this.addMarker(this.currentReqRange);
     }
-  }, 25);
+  }, INTERVAL);
 
   // split valid requestes start and end line;
   expandRangeToRequestEdges = async (
@@ -491,17 +493,17 @@ export class MilvusEditor implements CoreEditor {
 
     if (parsedReq.data && parsedReq.data.length > 0) {
       let indent = parsedReq.data.length === 1; // unindent multi docs by default
-      let formattedData = utils.formatRequestBodyDoc(parsedReq.data, indent);
+      let formattedData = formatRequestBodyDoc(parsedReq.data, indent);
       if (!formattedData.changed) {
         // toggle.
         indent = !indent;
-        formattedData = utils.formatRequestBodyDoc(parsedReq.data, indent);
+        formattedData = formatRequestBodyDoc(parsedReq.data, indent);
       }
       parsedReq.data = formattedData.data;
 
       this.replaceRequestRange(parsedReq, reqRange);
     }
-  }, 25);
+  }, INTERVAL);
 
   // set content
   update = async (data: string, reTokenizeAll = false) => {
@@ -509,7 +511,7 @@ export class MilvusEditor implements CoreEditor {
   };
 
   replaceRequestRange = (newRequest: any, requestRange: Range) => {
-    const text = utils.textFromRequest(newRequest);
+    const text = textFromRequest(newRequest);
     if (requestRange) {
       this.replaceRange(requestRange, text);
     } else {

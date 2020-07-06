@@ -3,7 +3,7 @@ import { MilvusEditor } from "./milvus_editor";
 
 export const create = (el: HTMLElement) => {
   const aceEditor = ace.edit(el);
-  const zillizEditor = new MilvusEditor(aceEditor);
-  zillizEditor.highlightCurrentRequests();
-  return zillizEditor;
+  const milvusEditor = new MilvusEditor(aceEditor);
+  milvusEditor.highlightCurrentRequests();
+  return milvusEditor;
 };
