@@ -5,7 +5,7 @@ import {
   ListComponent,
   SimpleParamComponent,
 } from "./index";
-import { METHODS } from "../../../consts";
+import { METHODS } from "../../consts";
 import { FullRequestComponent } from "./full_request_component";
 
 /**

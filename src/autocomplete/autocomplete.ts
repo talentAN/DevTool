@@ -9,9 +9,9 @@ import {
 } from "./getComponents";
 import { URL_PATH_END_MARKER } from "./components/accept_endpoint_component";
 import { populateContext } from "./engine";
-import { createTokenIterator } from "../../utils/helpers/token_iterator";
-import { jsonToString } from "../../utils/helpers/ContentFormatters";
-import { Position, Range, CoreEditor, Token, CurContext } from "../../types";
+import { createTokenIterator } from "../utils/helpers/token_iterator";
+import { jsonToString } from "../utils/helpers/ContentFormatters";
+import { Position, Range, CoreEditor, Token, CurContext } from "../types";
 import {
   isURLToken,
   isUrlParamsToken,

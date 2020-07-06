@@ -1,4 +1,4 @@
-import { Token } from "../../types";
+import { Token } from "../types";
 import _ from "lodash";
 import foreach from "lodash.foreach";
 

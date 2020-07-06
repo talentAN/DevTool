@@ -1,6 +1,6 @@
 import _ from "lodash";
-import { CoreEditor } from "../../types";
-import { sortArr } from "../../utils/helpers/PureFns";
+import { CoreEditor } from "../types";
+import { sortArr } from "../utils/helpers/PureFns";
 import _default from "lodash.defaults";
 import _isEmpty from "lodash.isempty";
 import foreach from "lodash.foreach";

@@ -1,5 +1,5 @@
 import { SharedComponent } from ".";
-import { CoreEditor } from "../../../types";
+import { CoreEditor } from "../../types";
 export class ConstantComponent extends SharedComponent {
   options: any;
   constructor(name: string, parent: any, options?: any) {
