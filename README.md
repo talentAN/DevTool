@@ -1,26 +1,25 @@
 ### Issue List
 
 - custom actions
-- smart resize => always keep current top line in view
-- smart paste => format curl to json automatically
-  - match curl paste
-  - parse curl paste
+- smart
+  - resize => always keep current top line in view
+  - paste => format curl to json automatically
+- curl request
+  - auto parse curl past
+  - get request in curl type when copy
 - autocomplete
 
   - fn chain
-    => register description
-    => get Context
+    1. register description in API
+    2. get Context
     - method
     - token
     - otherTokenValues
     - urlTokenPath
-      => get recommonded suggestions from description registered before;
+    3. get recommonded suggestions from description registered before;
     - 本质上是把路径切割成一块一块, 然后用一棵树去进行分段查找
     - 自动补全要支持你输入的字符串不一定是开头, 要可以拼接, 所以要处理这个地方的查找会比较复杂.
       => replace
-  - method
-  - url_path
-  - url_parameter
   - body
   - TODO:
     - what globals for?

@@ -1,6 +1,5 @@
-import $ from "jquery";
 import _ from "lodash";
-
+import foreach from "lodash.foreach";
 // NOTE: If this value ever changes to be a few seconds or less, it might introduce flakiness
 // due to timing issues in our app.js tests.
 
@@ -19,7 +18,7 @@ function _expandAliases(indicesOrAliases) {
   if (typeof indicesOrAliases === "string") {
     indicesOrAliases = [indicesOrAliases];
   }
-  indicesOrAliases = $.map(indicesOrAliases, function (iOrA) {
+  indicesOrAliases = indicesOrAliases.map(function (iOrA) {
     if (perAliasIndexes[iOrA]) {
       return perAliasIndexes[iOrA];
     }
@@ -28,7 +27,7 @@ function _expandAliases(indicesOrAliases) {
   let ret = [].concat.apply([], indicesOrAliases);
   ret.sort();
   let last;
-  ret = $.map(ret, function (v) {
+  ret = ret.map(function (v) {
     const r = last === v ? null : v;
     last = v;
     return r;
@@ -56,8 +55,8 @@ export function getFields(indices, types) {
       ret = f ? f : [];
     } else {
       // filter what we need
-      $.each(typeDict, function (type, fields) {
-        if (!types || types.length === 0 || $.inArray(type, types) !== -1) {
+      typeDict.each(function (type, fields) {
+        if (!types || types.length === 0 || types.some((t) => t === type)) {
           ret.push(fields);
         }
       });
@@ -66,18 +65,18 @@ export function getFields(indices, types) {
     }
   } else {
     // multi index mode.
-    $.each(perIndexTypes, function (index) {
+    perIndexTypes.each(function (index) {
       if (
         !indices ||
         indices.length === 0 ||
-        $.inArray(index, indices) !== -1
+        indices.some((i) => i === index)
       ) {
         ret.push(getFields(index, types));
       }
     });
     ret = [].concat.apply([], ret);
   }
-
+  console.info("xxx", ret);
   return _.uniq(ret, function (f) {
     return f.name + ":" + f.type;
   });
@@ -93,13 +92,13 @@ export function getTypes(indices) {
     }
 
     // filter what we need
-    $.each(typeDict, function (type) {
+    typeDict.each(function (type) {
       ret.push(type);
     });
   } else {
     // multi index mode.
-    $.each(perIndexTypes, function (index) {
-      if (!indices || $.inArray(index, indices) !== -1) {
+    perIndexTypes.each(function (index) {
+      if (!indices || indices.some((i) => i === index)) {
         ret.push(getTypes(index));
       }
     });
@@ -111,11 +110,11 @@ export function getTypes(indices) {
 // in use
 export function getIndices(includeAliases) {
   const ret = [];
-  $.each(perIndexTypes, function (index) {
+  foreach(perIndexTypes, function (index) {
     ret.push(index);
   });
   if (typeof includeAliases === "undefined" ? true : includeAliases) {
-    $.each(perAliasIndexes, function (alias) {
+    foreach(perAliasIndexes, function (alias) {
       ret.push(alias);
     });
   }

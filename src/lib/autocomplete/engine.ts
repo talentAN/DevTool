@@ -3,6 +3,7 @@ import { CoreEditor } from "../../types";
 import { sortArr } from "../../utils/helpers/PureFns";
 import _default from "lodash.defaults";
 import _isEmpty from "lodash.isempty";
+import foreach from "lodash.foreach";
 type Context = {
   activeScheme: any;
   autoCompleteSet: any;
@@ -159,7 +160,7 @@ export function populateContext(
       );
       ws.components.forEach(function (component) {
         const terms = component.getTerms(contextForState, editor);
-        terms.forEach(function (term: any) {
+        foreach(terms, function (term: any) {
           if (typeof term !== "object") {
             term = { name: term };
           }
