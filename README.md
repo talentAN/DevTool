@@ -2,6 +2,7 @@
 
 - main concepts:
   - token
+  - terms(条件)
 - main classes
   - Autocomplete
   - RowParser
