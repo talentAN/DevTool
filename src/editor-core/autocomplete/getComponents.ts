@@ -95,7 +95,7 @@ export function getUnmatchedEndpointComponents() {
   return ACTIVE_API.getUnmatchedEndpointComponents();
 }
 
-export function getEndpointDescriptionByEndpoint(endpoint: string) {
+function getEndpointDescriptionByEndpoint(endpoint: string) {
   return ACTIVE_API.getEndpointDescriptionByEndpoint(endpoint);
 }
 

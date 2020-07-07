@@ -34,7 +34,7 @@ const STATES = {
 };
 let lastEvaluatedToken: Token | null = null;
 
-// splited logics
+// splited logics for getting current method and tokenPaths
 const _getInitState = (tokenIter: any, startPos: Position) => {
   let curToken = tokenIter.getCurrentToken();
   let state = STATES.start;
