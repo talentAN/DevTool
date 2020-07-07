@@ -11,7 +11,15 @@ import { URL_PATH_END_MARKER } from "./components/accept_endpoint_component";
 import { populateContext } from "./engine";
 import { createTokenIterator } from "../utils/helpers/token_iterator";
 import { jsonToString } from "../utils/helpers/ContentFormatters";
-import { Position, Range, CoreEditor, Token, CurContext } from "../types";
+import {
+  Position,
+  Range,
+  CoreEditor,
+  Token,
+  CurContext,
+  Context,
+  AutocompleteType,
+} from "../types";
 import {
   isURLToken,
   isUrlParamsToken,
@@ -374,7 +382,7 @@ export default function ({
     const context = term.context;
 
     // make sure we get up to date replacement info.
-    addReplacementInfoToContext(
+    _addReplacementInfoToContext(
       context,
       editor.getCurrentPosition(),
       term.insertValue
@@ -494,28 +502,32 @@ export default function ({
     editor.on("changeSelection", editorChangeListener);
   }
 
-  function getAutoCompleteContext(ctxEditor: CoreEditor, pos: Position) {
+  function _getAutoCompleteContext(
+    ctxEditor: CoreEditor,
+    pos: Position
+  ): Context | null {
     // deduces all the parameters need to position and insert the auto complete
-    const context: any = {
+    // @ts-ignore
+    const context: Context = {
       autoCompleteSet: null, // instructions for what can be here
       endpoint: null,
-      urlPath: null,
+      urlPath: "",
       method: null,
       activeScheme: null,
       editor: ctxEditor,
     };
     context.autoCompleteType = _getAutoCompleteType(pos);
-    switch (context.autoCompleteType) {
-      case "path":
+    switch (context!.autoCompleteType) {
+      case AutocompleteType.path:
         _addPathAutoCompleteSetToContext(context, pos);
         break;
-      case "url_params":
+      case AutocompleteType.url_params:
         addUrlParamsAutoCompleteSetToContext(context, pos);
         break;
-      case "method":
+      case AutocompleteType.method:
         _addMethodAutoCompleteSetToContext(context);
         break;
-      case "body":
+      case AutocompleteType.body:
         addBodyAutoCompleteSetToContext(context, pos);
         break;
       default:
@@ -526,19 +538,17 @@ export default function ({
       return null; // nothing to do..
     }
 
-    addReplacementInfoToContext(context, pos);
+    _addReplacementInfoToContext(context, pos);
 
     context.createdWithToken = clone(context.updatedForToken);
 
     return context;
   }
-  /**
-   * return "method", "path" or "body" to determine auto complete type.
-   */
-  function _getAutoCompleteType(pos: Position): string | null {
+
+  function _getAutoCompleteType(pos: Position): AutocompleteType | null {
     let rowMode = parser.getRowParseMode();
     if (rowMode & parser.MODE.IN_REQUEST) {
-      return "body";
+      return AutocompleteType.body;
     }
     if (rowMode & parser.MODE.REQUEST_START) {
       // on url path, url params or method.
@@ -546,36 +556,35 @@ export default function ({
         editor,
         position: pos,
       });
-      let t = tokenIter.getCurrentToken();
+      let curToken = tokenIter.getCurrentToken();
 
-      while (t!.type === "url.comma") {
-        t = tokenIter.stepBackward();
+      while (curToken!.type === "url.comma") {
+        curToken = tokenIter.stepBackward();
       }
-      switch (t!.type) {
+      switch (curToken!.type) {
         case "method":
-          return "method";
+          return AutocompleteType.method;
         case "whitespace":
-          t = parser.prevNonEmptyToken(tokenIter);
-
-          switch ((t || ({} as any)).type) {
+          curToken = parser.prevNonEmptyToken(tokenIter);
+          switch ((curToken || ({} as any)).type) {
             case "method":
               // we moved one back
-              return "path";
+              return AutocompleteType.path;
             default:
-              if (isUrlPathToken(t)) {
-                return "path";
+              if (isUrlPathToken(curToken)) {
+                return AutocompleteType.path;
               }
-              if (isUrlParamsToken(t)) {
-                return "url_params";
+              if (isUrlParamsToken(curToken)) {
+                return AutocompleteType.url_params;
               }
               return null;
           }
         default:
-          if (isUrlPathToken(t)) {
-            return "path";
+          if (isUrlPathToken(curToken)) {
+            return AutocompleteType.path;
           }
-          if (isUrlParamsToken(t)) {
-            return "url_params";
+          if (isUrlParamsToken(curToken)) {
+            return AutocompleteType.url_params;
           }
           return null;
       }
@@ -583,30 +592,25 @@ export default function ({
 
     // after start to avoid single line url only requests
     if (rowMode & parser.MODE.REQUEST_END) {
-      return "body";
+      return AutocompleteType.body;
     }
-
     // in between request on an empty
     if (editor.getLineValue(pos.lineNumber).trim() === "") {
       // check if the previous line is a single line beginning of a new request
       rowMode = parser.getRowParseMode(pos.lineNumber - 1);
-      // eslint-disable-next-line no-bitwise
-      if (
-        // eslint-disable-next-line no-bitwise
+      const isSingleLineBegin =
         rowMode & parser.MODE.REQUEST_START &&
-        // eslint-disable-next-line no-bitwise
-        rowMode & parser.MODE.REQUEST_END
-      ) {
-        return "body";
+        rowMode & parser.MODE.REQUEST_END;
+      if (isSingleLineBegin) {
+        return AutocompleteType.body;
       }
-      // o.w suggest a method
-      return "method";
+      // otherwise suggest a method
+      return AutocompleteType.method;
     }
-    console.info("Invalid");
     return null;
   }
 
-  function addReplacementInfoToContext(
+  function _addReplacementInfoToContext(
     context: any,
     pos: Position,
     replacingTerm?: any
@@ -923,7 +927,6 @@ export default function ({
       // zero length tokenPath is true
       return context;
     }
-
     populateContext(
       _curContext.urlTokenPath,
       context,
@@ -931,23 +934,18 @@ export default function ({
       false,
       getTopLevelUrlCompleteComponents(context.method)
     );
-
     context.bodyTokenPath = _curContext.bodyTokenPath;
     if (!_curContext.bodyTokenPath) {
       // zero length tokenPath is true
-
       return context;
     }
 
     // needed for scope linking + global term resolving
     context.endpointComponentResolver = getEndpointBodyCompleteComponents;
     context.globalComponentResolver = getGlobalAutocompleteComponents;
-    let components;
-    if (context.endpoint) {
-      components = context.endpoint.bodyAutocompleteRootComponents;
-    } else {
-      components = getUnmatchedEndpointComponents();
-    }
+    const components = context.endpoint
+      ? context.endpoint.bodyAutocompleteRootComponents
+      : getUnmatchedEndpointComponents();
     populateContext(
       _curContext.bodyTokenPath,
       context,
@@ -955,7 +953,6 @@ export default function ({
       true,
       components
     );
-
     return context;
   }
 
@@ -1037,39 +1034,41 @@ export default function ({
     callback: (...args: any[]) => void
   ) {
     try {
-      const context = getAutoCompleteContext(editor, position);
+      const context = _getAutoCompleteContext(editor, position);
+      debugger;
       // if you wanna show autocomplete here, the context.autoCompleteSet should not be empty;
       if (!context) {
         callback(null, []);
       } else {
         const terms: any[] = [];
         // filter null terms and normalize term
-        context.autoCompleteSet.forEach((term: any) => {
-          if (!!term && term.name !== null) {
-            if (typeof term !== "object") {
-              term = {
-                name: term,
+        context &&
+          context.autoCompleteSet!.forEach((term: any) => {
+            if (!!term && term.name !== null) {
+              if (typeof term !== "object") {
+                term = {
+                  name: term,
+                };
+              } else {
+                term = Object.assign({}, term);
+              }
+              const defaults: any = {
+                value: term.name,
+                meta: "API",
+                score: 0,
+                context,
               };
-            } else {
-              term = Object.assign({}, term);
+              // we only need our custom insertMatch behavior for the body
+              if (context.autoCompleteType === "body") {
+                defaults.completer = {
+                  insertMatch() {
+                    return applyTerm(term);
+                  },
+                };
+              }
+              terms.push(_defaults(term, defaults));
             }
-            const defaults: any = {
-              value: term.name,
-              meta: "API",
-              score: 0,
-              context,
-            };
-            // we only need our custom insertMatch behavior for the body
-            if (context.autoCompleteType === "body") {
-              defaults.completer = {
-                insertMatch() {
-                  return applyTerm(term);
-                },
-              };
-            }
-            terms.push(_defaults(term, defaults));
-          }
-        });
+          });
         terms.sort(function (t1: any, t2: any) {
           /* score sorts from high to low */
           if (t1.score !== t2.score) {

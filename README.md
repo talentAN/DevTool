@@ -37,16 +37,7 @@
 
     - TODO:
       - what globals for?
-      - what endpoints for => 补全
-      - what **flag** for => 1.boolean 自动补全; 2.meta 信息展示
-      - what patterns for? => 语法识别
-        - {indices} => 目前看来是数字变量
-        - {type}
-        - {id}
-        - {metrics}
-      - what documentation for ?
       - what templates for ?
-      - what url_components for => 给变量用的
 
 - highlight current requests
 
@@ -62,8 +53,24 @@ const API_Endpoints = {
           value_list: ["a", "b", "c", "d"], // the value is array, the cdds to autocomplete
           value_flag: "__flag__", // the value is true or false, flag will show in meta
         },
+        url_components: {
+          indices: null,
+          metrics: [
+            "indexing",
+            "merge",
+            "query_cache",
+            "refresh",
+            "request_cache",
+            "search",
+            "segments",
+            "store",
+            "suggest",
+            "warmer",
+          ],
+        }, // variables used in url path, if null ,will fall back to default autocomplete or nothing
         methods: ["GET", "POST", "PUT"], // the methods supported by this patterns,
-        patterns: ["_bulk", "{indices}/_bulk", "{indices}/{type}/_bulk"], // the patterns means the paths to be supported, we support both ordinal string and variables here
+        patterns: ["_bulk", "{indices}/_bulk", "{indices}/{metrics}/_bulk"], // the patterns means the paths to be supported, we support both ordinal string and variables here
+        data_autocomplete_rules: {}, // often used in body autocomplete
         documentation:
           "http://www.elastic.co/guide/en/elasticsearch/reference/master/docs-bulk.html", // the doc link of this path
         id: "key", // the key of this examble

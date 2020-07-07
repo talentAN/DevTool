@@ -118,7 +118,7 @@ export function getGlobalAutocompleteComponents(
   return ACTIVE_API.getGlobalAutocompleteComponents(term, throwOnMissing);
 }
 
-function loadApisFromJson(
+function _loadApisFromJson(
   json: any,
   urlParametrizedComponentFactories?: any,
   bodyParametrizedComponentFactories?: any
@@ -152,4 +152,4 @@ function loadApisFromJson(
   return api;
 }
 // register autocomplete components to apis
-ACTIVE_API = loadApisFromJson(API_Endpoints);
+ACTIVE_API = _loadApisFromJson(API_Endpoints);
