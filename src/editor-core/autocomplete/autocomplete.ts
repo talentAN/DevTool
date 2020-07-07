@@ -324,7 +324,7 @@ const _getBodyCurrentMethodAndTokenPaths = (
   _addMethod(tokenIter, _curContext);
   return _curContext;
 };
-
+// refactored
 function _getCurrentMethodAndTokenPaths(
   editor: CoreEditor,
   pos: Position,

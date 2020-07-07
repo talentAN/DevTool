@@ -8,12 +8,13 @@ import {
 } from "./components";
 
 class ParamComponent extends ConstantComponent {
-  constructor(name, parent, description) {
+  description: any;
+  constructor(name: string, parent: any, description: any) {
     super(name, parent);
     this.description = description;
   }
   getTerms() {
-    const t = { name: this.name };
+    const t: any = { name: this.name };
     if (this.description === "__flag__") {
       t.meta = "flag";
     } else {
@@ -25,7 +26,8 @@ class ParamComponent extends ConstantComponent {
 }
 
 export class UrlParams {
-  constructor(description, defaults) {
+  rootComponent: any;
+  constructor(description: any, defaults?: any) {
     // This is not really a component, just a handy container to make iteration logic simpler
     this.rootComponent = new SharedComponent("ROOT");
     defaults = defaults || {
@@ -37,7 +39,7 @@ export class UrlParams {
     _defaults(description, defaults);
     foreach(
       description,
-      function (pDescription, param) {
+      function (pDescription: any, param: any) {
         const component = new ParamComponent(
           param,
           this.rootComponent,

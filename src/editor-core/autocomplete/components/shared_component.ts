@@ -2,7 +2,7 @@ import { AutocompleteComponent } from "./autocomplete_component";
 
 export class SharedComponent extends AutocompleteComponent {
   _nextDict: any;
-  constructor(name: string, parent: any) {
+  constructor(name: string, parent?: any) {
     super(name);
     this._nextDict = {};
     if (parent) {

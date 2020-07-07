@@ -136,9 +136,7 @@ function _loadApisFromJson(
   const names: string[] = [];
   forEach(json, function (apiJson: any, name: string) {
     names.unshift(name);
-    // FIXME: global autocomplete seem useless for us, pay attention to this later;
     forEach(apiJson.globals || {}, function (globalJson, globalName) {
-      // console.info("xxx", globalName, globalJson);
       api.addGlobalAutocompleteRules(globalName, globalJson);
     });
     forEach(apiJson.endpoints || {}, function (

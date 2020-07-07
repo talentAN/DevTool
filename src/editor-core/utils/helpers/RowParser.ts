@@ -143,11 +143,11 @@ function _handleSingleLineRequest(
 ): number {
   lineNumber++;
   if (lineNumber > linesCount) {
-    console.info("xxx => 7");
+    // console.info("xxx => 7");
     return MODE.REQUEST_START | MODE.REQUEST_END;
   }
   const line = (this.editor.getLineValue(lineNumber) || "").trim();
-  console.info(line.indexOf("{") === 0 ? "xxx => 8" : "xxx => 9");
+  // console.info(line.indexOf("{") === 0 ? "xxx => 8" : "xxx => 9");
   return line.indexOf("{") === 0
     ? MODE.REQUEST_START
     : MODE.REQUEST_START | MODE.REQUEST_END;
