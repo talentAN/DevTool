@@ -15,10 +15,10 @@ import {
   Position,
   Range,
   CoreEditor,
-  Token,
   CurContext,
   Context,
   AutocompleteType,
+  Token,
 } from "../types";
 import {
   isURLToken,
@@ -32,7 +32,7 @@ const STATES = {
   looking_for_scope_start: 1, // skip everything until scope start
   start: 3,
 };
-let lastEvaluatedToken: any = null;
+let lastEvaluatedToken: Token | null = null;
 
 // splited logics
 const _getInitState = (tokenIter: any, startPos: Position) => {
@@ -368,8 +368,8 @@ export default function ({
     }
   }
   // helper for complete context.autoCompleteSet;
-  // list->context.autoCompleteSet meta -> endpoint template? I don't know
-  function addMetaToTermsList(list: any, meta: any, template?: string) {
+  // list -> context.autoCompleteSet meta -> endpoint
+  function _addMetaToTermsList(list: any, meta: any, template?: string) {
     return list.map(function (t: any) {
       if (typeof t !== "object") {
         t = { name: t };
@@ -544,14 +544,15 @@ export default function ({
 
     return context;
   }
-
+  // refactored
   function _getAutoCompleteType(pos: Position): AutocompleteType | null {
     let rowMode = parser.getRowParseMode();
+    // in request must be body;
     if (rowMode & parser.MODE.IN_REQUEST) {
       return AutocompleteType.body;
     }
+    // if is start line, it should be url path || url params || method
     if (rowMode & parser.MODE.REQUEST_START) {
-      // on url path, url params or method.
       const tokenIter = createTokenIterator({
         editor,
         position: pos,
@@ -566,27 +567,21 @@ export default function ({
           return AutocompleteType.method;
         case "whitespace":
           curToken = parser.prevNonEmptyToken(tokenIter);
-          switch ((curToken || ({} as any)).type) {
-            case "method":
-              // we moved one back
-              return AutocompleteType.path;
-            default:
-              if (isUrlPathToken(curToken)) {
-                return AutocompleteType.path;
-              }
-              if (isUrlParamsToken(curToken)) {
-                return AutocompleteType.url_params;
-              }
-              return null;
+          if (curToken && isMethodToken(curToken)) {
+            // we need to move back one step
+            return AutocompleteType.method;
           }
+          return isUrlPathToken(curToken)
+            ? AutocompleteType.path
+            : isUrlParamsToken(curToken)
+            ? AutocompleteType.url_params
+            : null;
         default:
-          if (isUrlPathToken(curToken)) {
-            return AutocompleteType.path;
-          }
-          if (isUrlParamsToken(curToken)) {
-            return AutocompleteType.url_params;
-          }
-          return null;
+          return isUrlPathToken(curToken)
+            ? AutocompleteType.path
+            : isUrlParamsToken(curToken)
+            ? AutocompleteType.url_params
+            : null;
       }
     }
 
@@ -868,7 +863,7 @@ export default function ({
       components
     );
     // before run next, the context.autoCompleteSet shoud be a valid array.
-    context.autoCompleteSet = addMetaToTermsList(
+    context.autoCompleteSet = _addMetaToTermsList(
       context.autoCompleteSet,
       "endpoint"
     );
@@ -955,38 +950,38 @@ export default function ({
     );
     return context;
   }
-
-  const evaluateCurrentTokenAfterAChange = debounce(
-    function evaluateCurrentTokenAfterAChange(pos: Position) {
-      let currentToken = editor.getTokenAt(pos)!;
-      if (!currentToken) {
-        if (pos.lineNumber === 1) {
-          lastEvaluatedToken = null;
-          return;
-        }
-        currentToken = {
-          position: { column: 0, lineNumber: 0 },
-          value: "",
-          type: "",
-        }; // empty row
-      }
-      // console.info(currentToken)
-      currentToken.position.lineNumber = pos.lineNumber; // extend token with row. Ace doesn't supply it by default
-      if (parser.isEmptyToken(currentToken)) {
-        // empty token. check what's coming next
+  // refactored
+  const _evaluateCurrentTokenAfterAChange = debounce(
+    function _evaluateCurrentTokenAfterAChange(pos: Position) {
+      function _handleEmptyToken(curToken: Token) {
         const nextToken = editor.getTokenAt({
           ...pos,
           column: pos.column + 1,
         })!;
         if (parser.isEmptyToken(nextToken)) {
           // Empty line, or we're not on the edge of current token. Save the current position as base
-          currentToken.position.column = pos.column;
-          lastEvaluatedToken = currentToken;
+          curToken.position.column = pos.column;
+          lastEvaluatedToken = curToken;
         } else {
           nextToken.position.lineNumber = pos.lineNumber;
           lastEvaluatedToken = nextToken;
         }
         return;
+      }
+      let currentToken = editor.getTokenAt(pos);
+      if (!currentToken && pos.lineNumber === 1) {
+        lastEvaluatedToken = null;
+        return;
+      }
+      currentToken = currentToken || {
+        position: { column: 0, lineNumber: 0 },
+        value: "",
+        type: "",
+      }; // empty row
+
+      currentToken.position.lineNumber = pos.lineNumber; // extend token with row. Ace doesn't supply it by default
+      if (parser.isEmptyToken(currentToken)) {
+        _handleEmptyToken(currentToken);
       }
 
       if (!lastEvaluatedToken) {
@@ -994,18 +989,19 @@ export default function ({
         return; // wait for the next typing.
       }
 
-      if (
+      const isNothingChange = lastEvaluatedToken.value === currentToken.value;
+      const isNotOnTheSamePlace =
         lastEvaluatedToken.position.column !== currentToken.position.column ||
         lastEvaluatedToken.position.lineNumber !==
-          currentToken.position.lineNumber ||
-        lastEvaluatedToken.value === currentToken.value
-      ) {
+          currentToken.position.lineNumber;
+      if (isNothingChange || isNotOnTheSamePlace) {
         // not on the same place or nothing changed, cache and wait for the next time
         lastEvaluatedToken = currentToken;
         return;
       }
 
       // don't automatically open the auto complete if some just hit enter (new line) or open a parentheses
+      // all tokenTypes is metioned in types/token.ts
       switch (currentToken.type || "UNKNOWN") {
         case "paren.lparen":
         case "paren.rparen":
@@ -1014,17 +1010,16 @@ export default function ({
         case "UNKNOWN":
           return;
       }
-
       lastEvaluatedToken = currentToken;
       editor.execCommand("startAutocomplete");
     },
     100
   );
-
+  // if autocomplete component isn't showing, do something
   function editorChangeListener() {
     const position = editor.getCurrentPosition();
     if (position && !editor.isCompleterActive()) {
-      evaluateCurrentTokenAfterAChange(position);
+      _evaluateCurrentTokenAfterAChange(position);
     }
   }
 
@@ -1035,7 +1030,6 @@ export default function ({
   ) {
     try {
       const context = _getAutoCompleteContext(editor, position);
-      debugger;
       // if you wanna show autocomplete here, the context.autoCompleteSet should not be empty;
       if (!context) {
         callback(null, []);

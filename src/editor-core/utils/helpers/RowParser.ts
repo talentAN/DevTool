@@ -1,14 +1,17 @@
 import { CoreEditor, Token } from "../../types";
 import { TokenIterator } from "./token_iterator";
 
+// TODO: really need so complacated ?
+// I'm refactored base this mode, but later I think it should be replaced
+
 // 用位运算进行校验, 比if else之类的方便超级多
-// &运算用于校验权限, | 运算用来赋予权限
+// & 运算用于校验权限, | 运算用来赋予权限
 const MODE = {
   REQUEST_START: 2,
   IN_REQUEST: 4,
-  MULTI_DOC_CUR_DOC_END: 8, // 一个post路径带着多个不同的参数请求, 待验证
+  MULTI_DOC_CUR_DOC_END: 8, // 一个post路径带着多个不同的参数请求
   REQUEST_END: 16,
-  BETWEEN_REQUESTS: 32,
+  BETWEEN_REQUESTS: 32, // empty line, no matter out of range or between two requests
 };
 
 export default class RowParser {
@@ -18,25 +21,31 @@ export default class RowParser {
   getRowParseMode(lineNumber = this.editor.getCurrentPosition().lineNumber) {
     const linesCount = this.editor.getLineCount();
     const mode = this.editor.getLineState(lineNumber);
-    const isOutOfRange = lineNumber > linesCount || lineNumber < 1 || !mode;
-    if (isOutOfRange) {
-      return MODE.BETWEEN_REQUESTS;
-    }
-    // when will get "start-sql"?
-    if (mode !== "start" && mode !== "start-sql") {
-      return MODE.IN_REQUEST;
-    }
     let line = (this.editor.getLineValue(lineNumber) || "").trim();
-    // empty line or a comment waiting for a new req to start
-    let isEmptyLine = !line || line[0] === "#";
-    if (isEmptyLine) {
+
+    let isEmpty =
+      lineNumber > linesCount || // out of range
+      lineNumber < 1 || // out of range
+      !mode || // invalid mode
+      !line || // empty line
+      line[0] === "#"; // comment line
+    if (isEmpty) {
+      // console.info("xxx => 1");
       return MODE.BETWEEN_REQUESTS;
+    }
+    // when will get "start-sql"? curl? May useless for us not verify yet.
+    // if is valid mode, and not start, it must be body.
+    if (mode !== "start" && mode !== "start-sql") {
+      // console.info("xxx => 2");
+      return MODE.IN_REQUEST;
     }
     // check for a multi doc request (must start a new json doc immediately after this one end.
     if (line.indexOf("}", line.length - 1) >= 0) {
+      // console.info("xxx => 4");
       return _handleEndOfParams.call(this, lineNumber, linesCount);
     }
     // check for single line requests
+    // console.info("xxx => 5");
     return _handleSingleLineRequest.call(this, lineNumber, linesCount);
   }
 
@@ -121,9 +130,11 @@ function _handleEndOfParams(lineNumber: number, linesCount: number): number {
     let line = (this.editor.getLineValue(lineNumber) || "").trim();
     // next line is another doc in a multi doc
     if (line.indexOf("{") === 0) {
+      // console.info("xxx => 6");
       return MODE.MULTI_DOC_CUR_DOC_END | MODE.IN_REQUEST;
     }
   }
+  // console.info("xxx => 7");
   return MODE.REQUEST_END | MODE.MULTI_DOC_CUR_DOC_END; // end of request
 }
 function _handleSingleLineRequest(
@@ -131,12 +142,13 @@ function _handleSingleLineRequest(
   linesCount: number
 ): number {
   lineNumber++;
-  if (lineNumber >= linesCount + 1) {
+  if (lineNumber > linesCount) {
+    console.info("xxx => 7");
     return MODE.REQUEST_START | MODE.REQUEST_END;
   }
   const line = (this.editor.getLineValue(lineNumber) || "").trim();
-  if (line.indexOf("{") !== 0) {
-    return MODE.REQUEST_START | MODE.REQUEST_END;
-  }
-  return MODE.REQUEST_START;
+  console.info(line.indexOf("{") === 0 ? "xxx => 8" : "xxx => 9");
+  return line.indexOf("{") === 0
+    ? MODE.REQUEST_START
+    : MODE.REQUEST_START | MODE.REQUEST_END;
 }
