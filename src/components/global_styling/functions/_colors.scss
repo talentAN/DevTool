@@ -69,20 +69,6 @@
   @return max($backgroundLum, $foregroundLum) / min($backgroundLum, $foregroundLum);
 }
 
-// Given $color, decide whether $lightText or $darkText should be used as the text color
-// ex: chooseLightOrDarkText(#EEE, #FFF, #000) would return #000 because it has
-//     a higher contrast than #FFF against a #EEE background.
-@function chooseLightOrDarkText($background, $lightText, $darkText) {
-  $lightContrast: contrastRatio($background, $lightText);
-  $darkContrast: contrastRatio($background, $darkText);
-
-  @if ($lightContrast > $darkContrast) {
-    @return $lightText;
-  } @else {
-    @return $darkText;
-  }
-}
-
 // Given a $foreground and a $background, make the $foreground AA accessibility by slightly
 // adjusting it till the contrast is high enough
 // By default it will compare against the page background color
@@ -119,12 +105,4 @@
   }
 
   @return $highContrastTextColor;
-}
-
-// Graphics such as stand alone icons and pieces of a graph only need a minimum ratio of 3:1 with its background.
-// Therefore, we can reuse the `makeHighContrastColor()` function but only attain a min contrast of 3.0.
-// It is still recommended to use `makeHighContrastColor()` to attain a 4.5:1 ratio if the graphic is small or thinly stroked.
-// https://www.w3.org/WAI/GL/low-vision-a11y-tf/wiki/Informational_Graphic_Contrast_(Minimum)
-@function makeGraphicContrastColor($color, $background: $euiPageBackgroundColor) {
-  @return makeHighContrastColor($color, $background, 3);
 }
