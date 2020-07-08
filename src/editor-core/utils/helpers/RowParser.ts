@@ -2,7 +2,7 @@ import { CoreEditor, Token } from "../../types";
 import { TokenIterator } from "./token_iterator";
 
 // TODO: really need so complacated ?
-// I'm refactored base this mode, but later I think it should be replaced
+// currently refactored base this mode, but later I think it should be replaced
 
 // 用位运算进行校验, 比if else之类的方便超级多
 // & 运算用于校验权限, | 运算用来赋予权限

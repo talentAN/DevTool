@@ -6,7 +6,6 @@ import {
   SimpleParamComponent,
 } from "./index";
 import { METHODS } from "../../../consts";
-import { FullRequestComponent } from "./full_request_component";
 
 /**
  * @param parametrizedComponentFactories a dict of the following structure
@@ -41,14 +40,6 @@ export class UrlPatternMatcher {
     endpoint.methods.forEach((method) => {
       let c; // c is a temp value which will be assignment to activeComponent
       let activeComponent = this[method].rootComponent;
-      // FIXME: Useless for us at the moment Check this later
-      if (endpoint.template) {
-        new FullRequestComponent(
-          pattern + "[body]",
-          activeComponent,
-          endpoint.template
-        );
-      }
       const endpointComponents = endpoint.url_components || {};
       const partList = pattern.split("/");
       partList.forEach(

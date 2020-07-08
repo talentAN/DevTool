@@ -41,7 +41,7 @@
 const API_Endpoints = {
   examble_version_1: {
     name: "examble_version_1",
-    globals: {}, //TODO:
+    globals: {},
     endpoints: {
       key: {
         url_params: {
