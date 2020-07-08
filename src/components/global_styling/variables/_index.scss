@@ -7,16 +7,7 @@
 // variables should be declared at the top of those documents prefixed with $componentName.
 
 // Import order is important. Size and color..etc are used in other variables.
-@import 'size';
-@import 'colors';
-@import 'animations';
-@import 'typography';
-@import 'borders';
-@import 'shadows';
-@import 'states';
-@import 'z_index';
-
-@import 'buttons';
-@import 'form';
-@import 'panel';
-@import 'tool_tip';
+@import "size";
+@import "colors";
+@import "borders";
+@import "z_index";
