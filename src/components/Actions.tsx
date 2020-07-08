@@ -27,7 +27,7 @@ const useStyles = (params: any) => {
 
 const _parseReq = (request: any) => {
   const { method, data, url } = request;
-  const params = JSON.parse(data[0].split("\n").join(""));
+  const params = data.length > 0 && JSON.parse(data[0].split("\n").join(""));
   return { method, url, params };
 };
 
@@ -41,7 +41,7 @@ const Actions = (props: any) => {
     editor &&
       editor.getRequestsInRange().then((res: any) => {
         Promise.all(
-          res.map((data: any) => requester(_parseReq(data)))
+          res.map((request: any) => requester(_parseReq(request)))
         ).then((results: any) => handleRes(results));
       });
   };
