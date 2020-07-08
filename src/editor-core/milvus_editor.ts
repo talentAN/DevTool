@@ -32,6 +32,7 @@ import { createTokenIterator } from "./utils/helpers/token_iterator";
 import { collapseLiteralStrings } from "./utils/helpers/ContentFormatters";
 import RowParser from "./utils/helpers/RowParser";
 import * as InputMode from "./mode/input";
+
 const _AceRange = ace.acequire("ace/range").Range;
 
 export class MilvusEditor implements CoreEditor {
@@ -338,8 +339,7 @@ export class MilvusEditor implements CoreEditor {
 
     langTools.setCompleters([
       {
-        // eslint-disable-next-line
-        identifierRegexps: [/[a-zA-Z_0-9\.\$\-\u00A2-\uFFFF]/],
+        identifierRegexps: [/[a-zA-Z_0-9.$\-\u00A2-\uFFFF]/],
         getCompletions: (
           DO_NOT_USE_1: IAceEditor,
           DO_NOT_USE_2: IAceEditSession,
