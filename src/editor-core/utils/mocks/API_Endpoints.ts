@@ -3283,7 +3283,7 @@ export const API_Endpoints = {
           timeout: "",
         },
         methods: ["POST"],
-        patterns: ["_cluster/reroute"],
+        patterns: ["._cluster/reroute"],
         documentation:
           "http://www.elastic.co/guide/en/elasticsearch/reference/master/cluster-reroute.html",
         data_autocomplete_rules: {

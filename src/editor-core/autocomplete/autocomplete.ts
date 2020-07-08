@@ -35,7 +35,10 @@ const STATES = {
 let lastEvaluatedToken: Token | null = null;
 
 // splited logics for getting current method and tokenPaths
-const _getInitState = (tokenIter: any, startPos: Position) => {
+// 解析顺序是 body => url_params => url_path => method
+// 如果当前的token不是body, 那么跳过body解析这一步
+// 注释的数字代表不同阶段的执行路径, 方便调试, 建议保留
+const _getInitBodyState = (tokenIter: any, startPos: Position) => {
   let curToken = tokenIter.getCurrentToken();
   let state = STATES.start;
   // handle if curToken not exists or the postion is first line
@@ -55,13 +58,13 @@ const _getInitState = (tokenIter: any, startPos: Position) => {
   }
   return state;
 };
-// 1,2
+// 1,2 => handle body
 const _handleBody = (
   tokenIter: any,
   startPos: Position,
   _curContext: CurContext
 ) => {
-  let state = _getInitState(tokenIter, startPos);
+  let state = _getInitBodyState(tokenIter, startPos);
   let curToken = tokenIter.getCurrentToken();
   let walkedSomeBody = false;
   // climb one scope at a time and get the scope key
@@ -292,7 +295,7 @@ const _getUrlCurrentMethodAndTokenPaths = (
   tokenIter: any,
   parser: any,
   _curContext: any
-) => {
+): CurContext => {
   //------------- => 4 start ------------
   _getPreviousNoEmptyToken(tokenIter);
   //------------- => 4 done 5 start ------------
@@ -311,11 +314,12 @@ const _getBodyCurrentMethodAndTokenPaths = (
   parser: any,
   startPos: Position,
   _curContext: CurContext
-) => {
+): CurContext => {
   // 1,2,6,7,9,10
   const isValid = _handleBody(tokenIter, startPos, _curContext);
   if (isValid === false) {
     // console.info("=> 3");
+    // @ts-ignore
     return {};
   }
   _curContext.requestStartRow = tokenIter.getCurrentPosition().lineNumber;
@@ -324,12 +328,12 @@ const _getBodyCurrentMethodAndTokenPaths = (
   _addMethod(tokenIter, _curContext);
   return _curContext;
 };
-// refactored
+
 function _getCurrentMethodAndTokenPaths(
   editor: CoreEditor,
   pos: Position,
   parser: any
-) {
+): CurContext {
   const tokenIter = createTokenIterator({
     editor,
     position: pos,
@@ -846,7 +850,11 @@ export default function ({
   }
   // main function to get path autocompletes
   function _addPathAutoCompleteSetToContext(context: any, pos: Position) {
-    const _curContext = _getCurrentMethodAndTokenPaths(editor, pos, parser);
+    const _curContext: CurContext = _getCurrentMethodAndTokenPaths(
+      editor,
+      pos,
+      parser
+    );
     context.method = _curContext.method;
     context.token = _curContext.token;
     context.otherTokenValues = _curContext.otherTokenValues;
@@ -1032,64 +1040,63 @@ export default function ({
       // if you wanna show autocomplete here, the context.autoCompleteSet should not be empty;
       if (!context) {
         callback(null, []);
-      } else {
-        const terms: any[] = [];
-        // filter null terms and normalize term
-        context &&
-          context.autoCompleteSet!.forEach((term: any) => {
-            // only handle valid terms
-            if (!!term && term.name !== null) {
-              term =
-                typeof term === "object"
-                  ? Object.assign({}, term)
-                  : {
-                      name: term,
-                    };
-              const defaults: any = {
-                value: term.name,
-                meta: "API",
-                score: 0,
-                context,
-              };
-              // we only need our custom insertMatch behavior for the body
-              if (context.autoCompleteType === "body") {
-                defaults.completer = {
-                  insertMatch() {
-                    return applyTerm(term);
-                  },
-                };
-              }
-              terms.push(_defaults(term, defaults));
-            }
-          });
-        terms
-          .sort(function (t1: any, t2: any) {
-            /* score sorts from high to low */
-            if (t1.score !== t2.score) {
-              return t1.score < t2.score ? 1 : -1;
-            }
-            /* names sort from low to high */
-            if (t1.name <= t2.name) {
-              return t1.name === t2.name ? 0 : -1;
-            }
-            return 1;
-          })
-          .map(function (t: any, i: any) {
-            t.insertValue = t.insertValue || t.value;
-            t.value = "" + t.value; // normalize to strings
-            t.score = -i;
-            return t;
-          });
-        // debugger;
-        callback(null, terms);
+        return;
       }
+      const terms: any[] = [];
+      // filter null terms and normalize term
+      context &&
+        context.autoCompleteSet!.forEach((term: any) => {
+          // only handle valid terms
+          if (!!term && term.name !== null) {
+            term =
+              typeof term === "object"
+                ? Object.assign({}, term)
+                : {
+                    name: term,
+                  };
+            const defaults: any = {
+              value: term.name,
+              meta: "API",
+              score: 0,
+              context,
+            };
+            // we only need our custom insertMatch behavior for the body
+            if (context.autoCompleteType === "body") {
+              defaults.completer = {
+                insertMatch() {
+                  return applyTerm(term);
+                },
+              };
+            }
+            terms.push(_defaults(term, defaults));
+          }
+        });
+      terms
+        .sort(function (t1: any, t2: any) {
+          /* score sorts from high to low */
+          if (t1.score !== t2.score) {
+            return t1.score < t2.score ? 1 : -1;
+          }
+          /* names sort from low to high */
+          if (t1.name <= t2.name) {
+            return t1.name === t2.name ? 0 : -1;
+          }
+          return 1;
+        })
+        .map(function (t: any, i: number) {
+          t.insertValue = t.insertValue || t.value;
+          t.value = "" + t.value; // normalize to strings
+          t.score = -i;
+          return t;
+        });
+      callback(null, terms);
     } catch (e) {
       // eslint-disable-next-line no-console
       console.error(e);
       callback(e, null);
     }
   }
-
+  // 这里注册并执行autoComplete
   editor.on("changeSelection", editorChangeListener);
   return getCompletions;
 }
