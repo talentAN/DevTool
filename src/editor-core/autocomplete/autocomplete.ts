@@ -520,6 +520,7 @@ export default function ({
     switch (context!.autoCompleteType) {
       case AutocompleteType.path:
         _addPathAutoCompleteSetToContext(context, pos);
+        // debugger;
         break;
       case AutocompleteType.url_params:
         addUrlParamsAutoCompleteSetToContext(context, pos);
@@ -537,11 +538,9 @@ export default function ({
     if (!context.autoCompleteSet) {
       return null; // nothing to do..
     }
-
     _addReplacementInfoToContext(context, pos);
 
     context.createdWithToken = clone(context.updatedForToken);
-
     return context;
   }
   // refactored
@@ -854,7 +853,7 @@ export default function ({
     context.urlTokenPath = _curContext.urlTokenPath;
     // get all candidates in this method
     const components = getTopLevelUrlCompleteComponents(context.method);
-    // get and put valid cdds to context
+    // get and put valid autoCompleteSet to context
     populateContext(
       _curContext.urlTokenPath,
       context,
@@ -1063,26 +1062,26 @@ export default function ({
               terms.push(_defaults(term, defaults));
             }
           });
-        terms.sort(function (t1: any, t2: any) {
-          /* score sorts from high to low */
-          if (t1.score !== t2.score) {
-            return t1.score < t2.score ? 1 : -1;
-          }
-          /* names sort from low to high */
-          if (t1.name <= t2.name) {
-            return t1.name === t2.name ? 0 : -1;
-          }
-          return 1;
-        });
-        callback(
-          null,
-          terms.map(function (t: any, i: any) {
+        terms
+          .sort(function (t1: any, t2: any) {
+            /* score sorts from high to low */
+            if (t1.score !== t2.score) {
+              return t1.score < t2.score ? 1 : -1;
+            }
+            /* names sort from low to high */
+            if (t1.name <= t2.name) {
+              return t1.name === t2.name ? 0 : -1;
+            }
+            return 1;
+          })
+          .map(function (t: any, i: any) {
             t.insertValue = t.insertValue || t.value;
             t.value = "" + t.value; // normalize to strings
             t.score = -i;
             return t;
-          })
-        );
+          });
+        // debugger;
+        callback(null, terms);
       }
     } catch (e) {
       // eslint-disable-next-line no-console

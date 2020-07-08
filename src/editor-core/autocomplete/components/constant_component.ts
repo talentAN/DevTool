@@ -4,21 +4,18 @@ export class ConstantComponent extends SharedComponent {
   options: any;
   constructor(name: string, parent: any, options?: any) {
     super(name, parent);
-    if (options && !Array.isArray(options)) {
-      options = [options];
-    }
+    options = typeof options === "string" ? [options] : options;
     this.options = options || [name];
   }
   getTerms() {
     return this.options;
   }
 
-  addOption(options: any) {
+  addOption(options: string[] | string) {
     if (!Array.isArray(options)) {
       options = [options];
     }
-
-    this.options.push(options);
+    this.options = this.options.concat(options);
     this.options = Array.from(new Set(this.options));
   }
   //@ts-ignore
