@@ -4386,32 +4386,32 @@ export const API_Endpoints = {
       //     "http://www.elastic.co/guide/en/elasticsearch/reference/master/indices-stats.html",
       //   id: "indices.stats",
       // },
-      // "indices.update_aliases": {
-      //   url_params: { timeout: "", master_timeout: "" },
-      //   methods: ["POST"],
-      //   patterns: ["_aliases"],
-      //   documentation:
-      //     "http://www.elastic.co/guide/en/elasticsearch/reference/master/indices-aliases.html",
-      //   data_autocomplete_rules: {
-      //     actions: {
-      //       __template: [{ add: { index: "test1", alias: "alias1" } }],
-      //       __any_of: [
-      //         {
-      //           add: {
-      //             index: "{index}",
-      //             alias: "",
-      //             filter: {},
-      //             routing: "1",
-      //             search_routing: "1,2",
-      //             index_routing: "1",
-      //           },
-      //           remove: { index: "", alias: "" },
-      //         },
-      //       ],
-      //     },
-      //   },
-      //   id: "indices.update_aliases",
-      // },
+      "indices.update_aliases": {
+        url_params: { timeout: "", master_timeout: "" },
+        methods: ["POST"],
+        patterns: ["_aliases"],
+        documentation:
+          "http://www.elastic.co/guide/en/elasticsearch/reference/master/indices-aliases.html",
+        data_autocomplete_rules: {
+          actions: {
+            __template: [{ add: { index: "test1", alias: "alias1" } }],
+            __any_of: [
+              {
+                add: {
+                  index: "{index}",
+                  alias: "",
+                  filter: {},
+                  routing: "1",
+                  search_routing: "1,2",
+                  index_routing: "1",
+                },
+                remove: { index: "", alias: "" },
+              },
+            ],
+          },
+        },
+        id: "indices.update_aliases",
+      },
       // "indices.upgrade": {
       //   url_params: {
       //     allow_no_indices: "__flag__",

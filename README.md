@@ -35,10 +35,6 @@
 
       4. 替换
 
-    - TODO:
-      - what globals for?
-      - what templates for ?
-
 - highlight current requests
 
 ```javascript

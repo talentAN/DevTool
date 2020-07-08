@@ -1,4 +1,3 @@
-import _ from "lodash";
 import { CoreEditor } from "../types";
 import { sortArr } from "../utils/helpers/PureFns";
 import _default from "lodash.defaults";
@@ -26,18 +25,10 @@ type I_WalkingState = {
   name?: string;
 };
 
-// what this for?
 function _passThroughContext(context: Context, extensionList: any) {
   function PTC() {}
-
   PTC.prototype = context;
   const result = new (PTC as any)();
-  if (extensionList) {
-    extensionList.unshift(result);
-    // TODO: don't really understand
-    _.assign.apply(_, extensionList);
-    extensionList.shift();
-  }
   return result;
 }
 
