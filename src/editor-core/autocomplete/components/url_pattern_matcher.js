@@ -18,6 +18,8 @@ import { FullRequestComponent } from "./full_request_component";
  * }
  * @constructor
  */
+
+// this is the matcher for variables in url path like {metrics}
 export class UrlPatternMatcher {
   constructor(parametrizedComponentFactories) {
     // We'll group endpoints by the methods which are attached to them,
@@ -62,10 +64,10 @@ export class UrlPatternMatcher {
             }
             // a new path, resolve.
             if ((c = endpointComponents[part])) {
-              // endpoint specific. Support list
               c = Array.isArray(c)
                 ? new ListComponent(part, c, activeComponent)
-                : // TODO: why don't push activeComponent here? And since it's not in main tree, how could be found anyway?
+                : // should not really go here. if c is not an array, it must be a const, then it should not be used in url_patterns_matcher
+                  // maybe this is just make sure not break down here if endpoint is not valid, it's also why didn't push parent in params
                   new SharedComponent(part);
             } else if (
               // 如果变量的内容没有被endpoint定义, 我们到默认值里面找找

@@ -1038,14 +1038,14 @@ export default function ({
         // filter null terms and normalize term
         context &&
           context.autoCompleteSet!.forEach((term: any) => {
+            // only handle valid terms
             if (!!term && term.name !== null) {
-              if (typeof term !== "object") {
-                term = {
-                  name: term,
-                };
-              } else {
-                term = Object.assign({}, term);
-              }
+              term =
+                typeof term === "object"
+                  ? Object.assign({}, term)
+                  : {
+                      name: term,
+                    };
               const defaults: any = {
                 value: term.name,
                 meta: "API",

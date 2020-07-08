@@ -147,6 +147,7 @@ function _loadApisFromJson(
     });
   });
   api.name = names.join(",");
+  // debugger;
   return api;
 }
 // register autocomplete components to apis
