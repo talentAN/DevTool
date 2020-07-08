@@ -14,10 +14,6 @@ body {
   background-color: $euiColorLightestShade;
   color: $euiTextColor;
 
-  .ace_scrollbar {
-    @include euiScrollBar;
-  }
-
   .ace_gutter-active-line,
   .ace_marker-layer .ace_active-line {
     background-color: transparentize($euiColorLightShade, 0.3);
