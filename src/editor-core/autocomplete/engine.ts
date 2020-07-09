@@ -162,7 +162,6 @@ export function populateContext(
     autoCompleteSet = Array.from(new Set(autoCompleteSet));
     context.autoCompleteSet = autoCompleteSet;
   }
-
   // apply what values were set so far to context, selecting the deepest on which sets the context
   if (walkStates.length !== 0) {
     let wsToUse = sortArr(walkStates).find((ws: I_WalkingState) =>

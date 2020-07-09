@@ -7,6 +7,7 @@
   - RowParser
   - \*\*Component
 - main functions:
+
   - custom actions
   - smart
     - resize => always keep current top line in view

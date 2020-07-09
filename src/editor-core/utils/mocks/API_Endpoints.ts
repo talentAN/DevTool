@@ -3283,7 +3283,7 @@ export const API_Endpoints = {
           timeout: "",
         },
         methods: ["POST"],
-        patterns: ["._cluster/reroute"],
+        patterns: ["_cluster/reroute"],
         documentation:
           "http://www.elastic.co/guide/en/elasticsearch/reference/master/cluster-reroute.html",
         data_autocomplete_rules: {
@@ -3325,7 +3325,7 @@ export const API_Endpoints = {
           allow_no_indices: "__flag__",
           expand_wildcards: ["open", "closed", "none", "all"],
         },
-        methods: ["GET"],
+        methods: ["GET", "POST"],
         patterns: [
           "_cluster/state",
           "_cluster/state/{metrics}",
@@ -5260,8 +5260,7 @@ export const API_Endpoints = {
         patterns: [
           "_cluster/nodes/hotthreads",
           "_cluster/nodes/hot_threads",
-          "_cluster/nodes/{nodes}/hotthreads",
-          "_cluster/nodes/{nodes}/hot_threads",
+           "_cluster/nodes/{nodes}/hot_threads",
           "_nodes/hotthreads",
           "_nodes/hot_threads",
           "_nodes/{nodes}/hotthreads",

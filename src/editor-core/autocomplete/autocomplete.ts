@@ -527,7 +527,7 @@ export default function ({
         // debugger;
         break;
       case AutocompleteType.url_params:
-        addUrlParamsAutoCompleteSetToContext(context, pos);
+        _addUrlParamsAutoCompleteSetToContext(context, pos);
         break;
       case AutocompleteType.method:
         _addMethodAutoCompleteSetToContext(context);
@@ -876,7 +876,7 @@ export default function ({
     );
   }
 
-  function addUrlParamsAutoCompleteSetToContext(context: any, pos: Position) {
+  function _addUrlParamsAutoCompleteSetToContext(context: any, pos: Position) {
     const _curContext = _getCurrentMethodAndTokenPaths(editor, pos, parser);
     context.method = _curContext.method;
     context.otherTokenValues = _curContext.otherTokenValues;
@@ -960,6 +960,7 @@ export default function ({
   // refactored
   const _evaluateCurrentTokenAfterAChange = debounce(
     function _evaluateCurrentTokenAfterAChange(pos: Position) {
+      // set lastEvaluatedToken
       function _handleEmptyToken(curToken: Token) {
         const nextToken = editor.getTokenAt({
           ...pos,
@@ -1047,7 +1048,7 @@ export default function ({
       context &&
         context.autoCompleteSet!.forEach((term: any) => {
           // only handle valid terms
-          if (!!term && term.name !== null) {
+          if (term && term.name) {
             term =
               typeof term === "object"
                 ? Object.assign({}, term)
