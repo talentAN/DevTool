@@ -47,11 +47,15 @@ const Editor = (props: any) => {
       const currentReqRange = editor.currentReqRange;
       if (currentReqRange) {
         const startLine = currentReqRange.start.lineNumber;
-        const div: any = document.querySelector(".ace_line_group")!;
-        const height =
-          Number.parseFloat(div && div.style && div.style.height) || 16;
-        let top = (startLine - 1) * height - Div_Scroll.scrollTop;
-        setActionTop(top);
+        const divs: any = document.querySelectorAll(".ace_line_group")!;
+        const height = Array.prototype.slice
+          .call(divs, 0, startLine - 1)
+          .reduce(
+            (acc: number, cur: HTMLElement) =>
+              acc + Number.parseFloat(cur.style.height),
+            0
+          );
+        setActionTop(height);
       } else {
         setActionTop(999999);
       }
