@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { makeStyles } from "@material-ui/styles";
 import Editor from "./Editor";
 import Blackboard from "./Blackboard";
@@ -23,6 +23,7 @@ const useStyles = makeStyles({
 const DevTool = (props: any) => {
   const [result, setResult]: any = useState("");
   const classes = useStyles();
+  const header = useRef(null);
   const requester = async (data: any) => data;
   const handleRes = (res: any) => {
     const str = JSON.stringify(res, null, 2);
@@ -31,9 +32,15 @@ const DevTool = (props: any) => {
 
   return (
     <div className={classes.root}>
-      <div className={classes.header}>Header</div>
+      <div className={classes.header} ref={header}>
+        Header
+      </div>
       <div className={classes.editorContainer}>
-        <Editor requester={requester} handleRes={handleRes} />
+        <Editor
+          requester={requester}
+          handleRes={handleRes}
+          headerRef={header}
+        />
         <Blackboard value={result} />
       </div>
     </div>

@@ -21,7 +21,7 @@ const useStyles = makeStyles({
 });
 
 const Editor = (props: any) => {
-  const { requester, handleRes } = props;
+  const { requester, handleRes, headerRef } = props;
   const editorRef = useRef<HTMLDivElement | null>(null);
   const editorInstanceRef: any = useRef(null);
   const [actionTop, setActionTop] = useState(0);
@@ -42,20 +42,21 @@ const Editor = (props: any) => {
 
     // auto calculate marker postions when cursor change or scroll
     const Div_Scroll = document.querySelector(".ace_scrollbar")!;
+    const headerTop = headerRef.current!.getBoundingClientRect().height;
     // set the postion of ActionBar
     const _setActionTop = debounce(function () {
       const currentReqRange = editor.currentReqRange;
       if (currentReqRange) {
         const startLine = currentReqRange.start.lineNumber;
-        const divs: any = document.querySelectorAll(".ace_line_group")!;
-        const height = Array.prototype.slice
-          .call(divs, 0, startLine - 1)
-          .reduce(
-            (acc: number, cur: HTMLElement) =>
-              acc + Number.parseFloat(cur.style.height),
-            0
-          );
-        setActionTop(height);
+        const startDiv = Array.prototype.find.call(
+          document.querySelectorAll(".ace_gutter-cell"),
+          (item) => item.innerHTML === startLine.toString()
+        );
+        if (!startDiv) {
+          return setActionTop(999999);
+        }
+        const top: number = startDiv!.getBoundingClientRect().top;
+        setActionTop(top - headerTop);
       } else {
         setActionTop(999999);
       }
@@ -66,6 +67,7 @@ const Editor = (props: any) => {
     Div_Scroll.addEventListener("scroll", (e: any) => {
       _setActionTop();
     });
+    //eslint-disable-next-line
   }, []);
 
   return (
